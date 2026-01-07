@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Documentos{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="page-header">
+      <h1>Documentos</h1>
+      <a class="btn btn-primary" href="{% url 'upload_documents' %}">Novo upload</a>
+    </div>
+
+    <div class="table-card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Upload</th>
+            <th>Status</th>
+            <th>Vencimento</th>
+            <th>Valor</th>
+            <th>Linha digitavel</th>
+            <th>Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in page_obj %}
+            <tr>
+              <td title="{{ d.id }}">{{ d.id|slice:":8" }}...</td>
+              <td>{{ d.uploaded_at|date:"d/m/Y H:i" }}</td>
+              <td>
+                <span class="status-badge status-{{ d.status|lower }}">{{ d.get_status_display }}</span>
+                {% if d.status == "FAILED" and d.error_message %}
+                  <span class="error-hint" title="{{ d.error_message }}">Erro</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if d.extracted_json %}
+                  {{ d.extracted_json.dates.vencimento|default:"—" }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if d.extracted_json %}
+                  {{ d.extracted_json.amounts.valor_documento|default:"—" }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if d.extracted_json %}
+                  {% with ld=d.extracted_json.barcode.linha_digitavel cb=d.extracted_json.barcode.codigo_barras %}
+                    {% if ld or cb %}
+                      {{ ld|default:cb|truncatechars:22 }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  {% endwith %}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                <div class="actions">
+                  <a class="btn btn-secondary" href="{% url 'document_json' d.id %}">Ver JSON</a>
+                  <a class="btn btn-ghost" href="{% url 'download_document' d.id %}">Download</a>
+                  {% if d.status == "PENDING" or d.status == "FAILED" %}
+                    <form method="post" action="{% url 'process_document' d.id %}" class="inline-form">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-primary">Processar</button>
+                    </form>
+                  {% elif d.status == "DONE" %}
+                    <form method="post" action="{% url 'process_document' d.id %}" class="inline-form">
+                      {% csrf_token %}
+                      <input type="hidden" name="reprocess" value="1" />
+                      <button type="submit" class="btn btn-secondary">Reprocessar</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7">Nenhum documento enviado ainda.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <span>Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_previous %}
+        <a class="btn btn-ghost" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a class="btn btn-ghost" href="?page={{ page_obj.next_page_number }}">Proxima</a>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

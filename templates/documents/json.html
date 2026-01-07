@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}JSON{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="page-header">
+      <div>
+        <h1>JSON extraido</h1>
+        <p class="help-text">Documento {{ doc.original_filename }}</p>
+      </div>
+      <a class="btn btn-ghost" href="{% url 'documents_list' %}">Voltar</a>
+    </div>
+
+    <pre id="json-output" class="json-block"></pre>
+    {{ json_data|json_script:"doc-json" }}
+    <script>
+      const dataEl = document.getElementById("doc-json");
+      const outputEl = document.getElementById("json-output");
+      if (dataEl && outputEl) {
+        const parsed = JSON.parse(dataEl.textContent);
+        outputEl.textContent = JSON.stringify(parsed, null, 2);
+      }
+    </script>
+  </div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+  <div class="card login-card">
+    <h1>Acesso</h1>
+    <p class="help-text">Entre com seu usuario e senha para acessar seus documentos.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div class="form-row">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+      </div>
+
+      <div class="form-row">
+        {{ form.password.label_tag }}
+        {{ form.password }}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Entrar</button>
+    </form>
+  </div>
+{% endblock %}
