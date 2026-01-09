@@ -63,6 +63,7 @@
               <td>
                 <div class="actions">
                   <a class="btn btn-secondary" href="{% url 'document_json' d.id %}">Ver JSON</a>
+                  <a class="btn btn-ghost" href="{% url 'document_json_download' d.id %}">Download JSON</a>
                   <a class="btn btn-ghost" href="{% url 'download_document' d.id %}">Download</a>
                   {% if d.status == "PENDING" or d.status == "FAILED" %}
                     <form method="post" action="{% url 'process_document' d.id %}" class="inline-form">

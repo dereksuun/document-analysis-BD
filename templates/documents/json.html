@@ -9,7 +9,10 @@
         <h1>JSON extraido</h1>
         <p class="help-text">Documento {{ doc.original_filename }}</p>
       </div>
-      <a class="btn btn-ghost" href="{% url 'documents_list' %}">Voltar</a>
+      <div class="actions">
+        <a class="btn btn-secondary" href="{% url 'document_json_download' doc.id %}">Download JSON</a>
+        <a class="btn btn-ghost" href="{% url 'documents_list' %}">Voltar</a>
+      </div>
     </div>
 
     <pre id="json-output" class="json-block"></pre>
