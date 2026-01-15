@@ -54,26 +54,49 @@
               </td>
               <td class="doc-info">
                 {% if d.extracted_json %}
-                  <div class="info-list">
-                    <div class="info-row">
-                      <span class="info-label">Data de Vencimento:</span>
-                      <span class="info-value">{{ d.extracted_json.dates.vencimento|default:"—" }}</span>
+                  {% if d.extracted_json.fields %}
+                    {% with fields=d.extracted_json.fields %}
+                      <div class="info-list">
+                        <div class="info-row">
+                          <span class="info-label">Data de Vencimento:</span>
+                          <span class="info-value">{{ fields.due_date|default:"—" }}</span>
+                        </div>
+                        <div class="info-row">
+                          <span class="info-label">Valor do Documento:</span>
+                          <span class="info-value">{{ fields.document_value|default:"—" }}</span>
+                        </div>
+                        <div class="info-row">
+                          <span class="info-label">Codigo de Barras:</span>
+                          {% if fields.barcode %}
+                            <span class="info-value barcode-value" title="{{ fields.barcode }}">{{ fields.barcode }}</span>
+                          {% else %}
+                            <span class="info-value">—</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% endwith %}
+                  {% else %}
+                    <div class="info-list">
+                      <div class="info-row">
+                        <span class="info-label">Data de Vencimento:</span>
+                        <span class="info-value">{{ d.extracted_json.dates.vencimento|default:"—" }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="info-label">Valor do Documento:</span>
+                        <span class="info-value">{{ d.extracted_json.amounts.valor_documento|default:"—" }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="info-label">Codigo de Barras:</span>
+                        {% with ld=d.extracted_json.barcode.linha_digitavel cb=d.extracted_json.barcode.codigo_barras %}
+                          {% if ld or cb %}
+                            <span class="info-value barcode-value" title="{{ ld|default:cb }}">{{ ld|default:cb }}</span>
+                          {% else %}
+                            <span class="info-value">—</span>
+                          {% endif %}
+                        {% endwith %}
+                      </div>
                     </div>
-                    <div class="info-row">
-                      <span class="info-label">Valor do Documento:</span>
-                      <span class="info-value">{{ d.extracted_json.amounts.valor_documento|default:"—" }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Codigo de Barras:</span>
-                      {% with ld=d.extracted_json.barcode.linha_digitavel cb=d.extracted_json.barcode.codigo_barras %}
-                        {% if ld or cb %}
-                          <span class="info-value barcode-value" title="{{ ld|default:cb }}">{{ ld|default:cb }}</span>
-                        {% else %}
-                          <span class="info-value">—</span>
-                        {% endif %}
-                      {% endwith %}
-                    </div>
-                  </div>
+                  {% endif %}
                 {% else %}
                   <div class="info-empty">—</div>
                 {% endif %}

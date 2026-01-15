@@ -123,4 +123,30 @@
       applyFilters();
     })();
   </script>
+  <script>
+    (function () {
+      const form = document.querySelector(".settings-form");
+      const addButton = document.querySelector('button[name="action"][value="add_keyword"]');
+      const input = document.getElementById("id_new_keyword");
+      if (!form || !addButton || !input) {
+        return;
+      }
+
+      form.addEventListener("submit", (event) => {
+        if (document.activeElement !== addButton) {
+          return;
+        }
+        const value = (input.value || "").trim();
+        if (!value) {
+          return;
+        }
+        const ok = window.confirm(`Voce digitou: "${value}". Confirmar?`);
+        if (!ok) {
+          event.preventDefault();
+          input.focus();
+          input.select();
+        }
+      });
+    })();
+  </script>
 {% endblock %}
