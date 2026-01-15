@@ -2,12 +2,15 @@ import logging
 import os
 import re
 import shutil
+import time
+import unicodedata
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from pypdf import PdfReader
 
-from .extractors import FIELD_EXTRACTORS, extract_keyword_value
+from .extractors import FIELD_EXTRACTORS, extract_cnpj, extract_cpf
+from .intent_catalog import TYPE_BY_BUILTIN
 
 try:
     from pdf2image import convert_from_path
@@ -34,6 +37,9 @@ AMOUNT_LABEL_RE = re.compile(
     r"(?i)(valor(?: do documento)?|valor cobrado|valor a pagar|total)\D{0,20}([0-9\.]+,[0-9]{2})"
 )
 GENERIC_AMOUNT_RE = re.compile(r"([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})")
+GENERIC_DATE_RE = re.compile(r"\b([0-3]?\d[\./-][01]?\d[\./-](?:\d{4}|\d{2}))\b")
+GENERIC_ID_RE = re.compile(r"\b[0-9A-Z]{5,}\b")
+CEP_RE = re.compile(r"\b\d{5}-?\d{3}\b")
 JUROS_LABEL_RE = re.compile(r"(?i)(juros)\D{0,20}([0-9\.]+,[0-9]{2})")
 MULTA_LABEL_RE = re.compile(r"(?i)(multa)\D{0,20}([0-9\.]+,[0-9]{2})")
 
@@ -41,15 +47,358 @@ logger = logging.getLogger(__name__)
 
 KEYWORD_PREFIX = "keyword:"
 CORE_FIELD_KEYS = {"due_date", "document_value", "barcode", "juros", "multa"}
+BUILTIN_FIELD_KEYS = set(TYPE_BY_BUILTIN.keys())
 
-def _log_field_result(field: str, value):
-    if value is None or value == "":
-        logger.info("extract_field_missing field=%s", field)
-        return
+CUSTOM_CONTEXT_LINES = 3
+
+CONTEXT_LINES_BY_TYPE = {
+    "money": 3,
+    "date": 3,
+    "id": 3,
+    "text": 4,
+    "address": 5,
+    "barcode": 2,
+    "cpf": 2,
+    "cnpj": 2,
+    "postal": 2,
+}
+
+CUSTOM_STOP_PHRASES = (
+    "local de pagamento",
+    "nosso numero",
+    "numero do documento",
+    "numero da conta",
+    "linha digitavel",
+    "codigo de barras",
+    "data de vencimento",
+    "data de emissao",
+    "data do documento",
+    "vencimento",
+    "valor do documento",
+    "valor total",
+    "valor a pagar",
+    "juros",
+    "multa",
+    "autenticacao mecanica",
+    "recibo do pagador",
+    "cedente",
+    "sacado",
+    "pagador",
+    "beneficiario",
+    "instrucoes",
+    "cpf",
+    "cnpj",
+)
+
+
+def _normalize_for_match(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value or "")
+    stripped = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    return re.sub(r"\s+", " ", stripped).strip().lower()
+
+
+_CUSTOM_STOP_NORMS = {_normalize_for_match(value) for value in CUSTOM_STOP_PHRASES}
+
+
+def _context_lines_for_type(inferred_type: str) -> int:
+    inferred_type = (inferred_type or "").lower()
+    return CONTEXT_LINES_BY_TYPE.get(inferred_type, CUSTOM_CONTEXT_LINES)
+
+
+def _collect_anchor_lines(text: str, anchors, context_lines: int):
+    anchors = [anchor for anchor in (anchors or []) if anchor]
+    if not anchors:
+        return []
+    norm_anchors = [_normalize_for_match(anchor) for anchor in anchors]
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    norm_lines = [_normalize_for_match(line) for line in lines]
+    selected = []
+    for idx, norm_line in enumerate(norm_lines):
+        if any(anchor in norm_line for anchor in norm_anchors):
+            selected.append(lines[idx])
+            for offset in range(1, context_lines + 1):
+                if idx + offset < len(lines):
+                    selected.append(lines[idx + offset])
+    return list(dict.fromkeys(selected))
+
+
+def _extract_text_from_lines(lines, anchors):
+    anchors = [anchor for anchor in (anchors or []) if anchor]
+    for line in lines:
+        for anchor in anchors:
+            match = re.search(re.escape(anchor), line, re.IGNORECASE)
+            if not match:
+                continue
+            value = line[match.end():].strip(" :-\t")
+            if value:
+                return value
+    return lines[0] if lines else None
+
+
+def _looks_like_anchor(value_norm: str, anchors) -> bool:
+    anchor_norms = [_normalize_for_match(anchor) for anchor in (anchors or []) if anchor]
+    for anchor in anchor_norms:
+        if not anchor:
+            continue
+        if value_norm == anchor:
+            return True
+        if value_norm.startswith(anchor) and len(value_norm) <= len(anchor) + 2:
+            return True
+    return False
+
+
+def _looks_like_label(value_norm: str) -> bool:
+    if not value_norm:
+        return True
+    for phrase in _CUSTOM_STOP_NORMS:
+        if not phrase:
+            continue
+        if value_norm == phrase:
+            return True
+        if value_norm.startswith(phrase) and len(value_norm) <= len(phrase) + 2:
+            return True
+    return False
+
+
+def _count_letters_digits(value: str) -> tuple[int, int]:
+    letters = sum(1 for ch in value if ch.isalpha())
+    digits = sum(1 for ch in value if ch.isdigit())
+    return letters, digits
+
+
+def _looks_like_amount_or_date(value: str) -> bool:
+    if GENERIC_AMOUNT_RE.search(value):
+        return True
+    if GENERIC_DATE_RE.search(value):
+        return True
+    return False
+
+
+def _is_noise_value(value: str, anchors, inferred_type: str) -> bool:
+    value_norm = _normalize_for_match(value or "")
+    if not value_norm or len(value_norm) < 3:
+        return True
+    if _looks_like_anchor(value_norm, anchors):
+        return True
+    if _looks_like_label(value_norm):
+        return True
+
+    inferred_type = (inferred_type or "text").lower()
+    if inferred_type in {"text", "address"}:
+        if _looks_like_amount_or_date(value):
+            return True
+        letters, digits = _count_letters_digits(value)
+        if letters < 3:
+            return True
+        if digits >= letters and digits > 0:
+            return True
+    if inferred_type == "id":
+        compact = re.sub(r"[^0-9A-Za-z]", "", value)
+        if len(compact) < 4:
+            return True
+    return False
+
+
+def _extract_money_from_lines(lines):
+    candidates = []
+    for line in lines:
+        for match in GENERIC_AMOUNT_RE.findall(line):
+            amount = _parse_amount_decimal(match)
+            if amount is not None:
+                candidates.append(amount)
+    if not candidates:
+        return None
+    best = max(candidates)
+    return str(best.quantize(Decimal("0.01")))
+
+
+def _extract_date_from_lines(lines):
+    for line in lines:
+        match = GENERIC_DATE_RE.search(line)
+        if not match:
+            continue
+        value = _parse_date(match.group(1))
+        if value:
+            return value
+    return None
+
+
+def _extract_id_from_lines(lines):
+    best = ""
+    for line in lines:
+        for match in GENERIC_ID_RE.findall(line):
+            if len(match) > len(best):
+                best = match
+    return best or None
+
+
+def _extract_postal_from_lines(lines):
+    for line in lines:
+        match = CEP_RE.search(line)
+        if match:
+            return match.group(0)
+    return None
+
+
+def _extract_barcode_from_text(text):
+    candidates = _extract_line_candidates(text)
+    line_digitavel, barcode = _select_barcode_and_line(candidates)
+    return line_digitavel or barcode
+
+
+def _extract_custom_field(text: str, anchors, inferred_type: str):
+    inferred_type = (inferred_type or "text").lower()
+    context_lines = _context_lines_for_type(inferred_type)
+    lines = _collect_anchor_lines(text, anchors, context_lines)
+    if not lines:
+        return None
+    if inferred_type in {"money", "amount"}:
+        return _extract_money_from_lines(lines)
+    if inferred_type in {"date"}:
+        return _extract_date_from_lines(lines)
+    if inferred_type in {"cpf"}:
+        return extract_cpf("\n".join(lines)).get("cpf")
+    if inferred_type in {"cnpj"}:
+        return extract_cnpj("\n".join(lines)).get("cnpj")
+    if inferred_type in {"barcode"}:
+        return _extract_barcode_from_text("\n".join(lines))
+    if inferred_type in {"postal"}:
+        return _extract_postal_from_lines(lines)
+    if inferred_type in {"id"}:
+        value = _extract_id_from_lines(lines)
+        if value and _is_noise_value(value, anchors, inferred_type):
+            return None
+        return value
+    if inferred_type in {"address"}:
+        value = _extract_text_from_lines(lines, anchors)
+        if value and _is_noise_value(value, anchors, inferred_type):
+            return None
+        return value
+    value = _extract_text_from_lines(lines, anchors)
+    if value and _is_noise_value(value, anchors, inferred_type):
+        return None
+    return value
+
+
+def extract_missing_with_llm(text: str, fields):
+    return {}
+
+
+def classify_document_type(text: str):
+    return None
+
+
+FORBIDDEN_PAYLOAD_KEYS = {
+    "extraction",
+    "raw_text_excerpt",
+    "selected_fields",
+    "selected_fields_raw",
+    "resolved_fields",
+    "missing_fields",
+    "ocr_used",
+    "duration_ms",
+    "anchors",
+    "match_strategy",
+    "confidence",
+}
+
+
+def sanitize_payload(payload: dict) -> dict:
+    if not isinstance(payload, dict):
+        return {"document_type": None, "fields": {}, "custom_fields": {}}
+
+    removed = [key for key in FORBIDDEN_PAYLOAD_KEYS if key in payload]
+    if removed:
+        logger.error("payload_forbidden_keys keys=%s", removed)
+
+    document_type = payload.get("document_type")
+
+    fields: dict[str, object] = {}
+    raw_fields = payload.get("fields") or {}
+    if isinstance(raw_fields, dict):
+        for key in BUILTIN_FIELD_KEYS:
+            if key in raw_fields:
+                fields[key] = raw_fields.get(key)
+
+    dates = payload.get("dates") or {}
+    if isinstance(dates, dict):
+        if "vencimento" in dates and "due_date" not in fields:
+            fields["due_date"] = dates.get("vencimento")
+
+    amounts = payload.get("amounts") or {}
+    if isinstance(amounts, dict):
+        if "valor_documento" in amounts and "document_value" not in fields:
+            fields["document_value"] = amounts.get("valor_documento")
+        if "juros" in amounts and "juros" not in fields:
+            fields["juros"] = amounts.get("juros")
+        if "multa" in amounts and "multa" not in fields:
+            fields["multa"] = amounts.get("multa")
+
+    barcode = payload.get("barcode") or {}
+    if isinstance(barcode, dict) and "barcode" not in fields:
+        barcode_value = barcode.get("linha_digitavel") or barcode.get("codigo_barras")
+        if barcode_value:
+            fields["barcode"] = barcode_value
+
+    for key in BUILTIN_FIELD_KEYS:
+        if key in payload and key not in fields:
+            fields[key] = payload.get(key)
+
+    custom_fields: dict[str, dict] = {}
+    raw_custom = payload.get("custom_fields") or {}
+    if isinstance(raw_custom, dict):
+        for key, value in raw_custom.items():
+            custom_key = str(key)
+            if isinstance(value, dict):
+                label = value.get("label") or custom_key
+                custom_fields[custom_key] = {"label": label, "value": value.get("value")}
+            else:
+                custom_fields[custom_key] = {"label": custom_key, "value": value}
+
+    return {
+        "document_type": document_type,
+        "fields": fields,
+        "custom_fields": custom_fields,
+    }
+
+def _mask_log_value(value, inferred_type: str):
     safe_value = str(value).replace("\n", " ").strip()
+    inferred_type = (inferred_type or "").lower()
+    if inferred_type in {"cpf", "cnpj"}:
+        digits = re.sub(r"\D", "", safe_value)
+        if len(digits) >= 4:
+            return f"***{digits[-4:]}"
+        return "***"
+    if inferred_type == "barcode":
+        digits = re.sub(r"\D", "", safe_value)
+        if len(digits) >= 6:
+            return f"len={len(digits)} tail={digits[-6:]}"
+        return f"len={len(digits)}"
+    if inferred_type in {"text", "address"}:
+        return f"len={len(safe_value)}"
+    if inferred_type == "id":
+        compact = re.sub(r"[^0-9A-Za-z]", "", safe_value)
+        if len(compact) >= 4:
+            return f"len={len(compact)} tail={compact[-4:]}"
+        return f"len={len(compact)}"
     if len(safe_value) > 120:
-        safe_value = f"{safe_value[:120]}..."
-    logger.info("extract_field_found field=%s value=%s", field, safe_value)
+        return f"{safe_value[:120]}..."
+    return safe_value
+
+
+def _log_field_result(field: str, value, *, strategy: str, inferred_type: str = "", match_strategy: str = "", label: str = ""):
+    status = "extract_ok" if value not in (None, "") else "extract_missing"
+    safe_value = _mask_log_value(value, inferred_type) if status == "extract_ok" else "-"
+    logger.info(
+        "%s field=%s strategy=%s type=%s match=%s label=%s value=%s",
+        status,
+        field,
+        strategy,
+        inferred_type or "-",
+        match_strategy or "-",
+        label or "-",
+        safe_value,
+    )
 
 
 def _parse_date(value: str):
@@ -193,16 +542,21 @@ def _extract_text_with_ocr(file_path: str) -> str:
     return text
 
 
-def extract_text_from_pdf(file_path: str) -> str:
+def extract_text_with_ocr_flag(file_path: str) -> tuple[str, bool]:
     text = _extract_text_from_pdf(file_path)
     if text:
-        return text
+        return text, False
     logger.info("ocr_fallback file=%s", os.path.basename(file_path))
     try:
-        return _extract_text_with_ocr(file_path)
+        return _extract_text_with_ocr(file_path), True
     except Exception as exc:
         logger.warning("ocr_failed file=%s error=%s", os.path.basename(file_path), exc)
         raise ValueError(f"PDF sem texto selecionavel. OCR falhou: {exc}") from exc
+
+
+def extract_text_from_pdf(file_path: str) -> str:
+    text, _ = extract_text_with_ocr_flag(file_path)
+    return text
 
 
 def _extract_core(text: str) -> dict:
@@ -228,120 +582,198 @@ def _extract_core(text: str) -> dict:
     }
 
 
-def process_document(file_path: str, selected_fields=None, keyword_map=None) -> dict:
+def process_document(
+    file_path: str,
+    selected_fields=None,
+    keyword_map=None,
+    *,
+    doc_id: str | None = None,
+    filename: str | None = None,
+) -> dict:
     if not file_path.lower().endswith(".pdf"):
         raise ValueError("Suporta apenas PDF.")
 
+    started_at = time.monotonic()
     if selected_fields is None:
         selected_fields = []
     selected_fields = list(dict.fromkeys(selected_fields))
     keyword_map = keyword_map or {}
 
-    text = extract_text_from_pdf(file_path)
-    result = {
-        "document_type": "boleto",
-        "raw_text_excerpt": text[:1200],
+    text, ocr_used = extract_text_with_ocr_flag(file_path)
+    file_label = filename or os.path.basename(file_path)
+    logger.info(
+        "process_document_start doc=%s file=%s selected=%s ocr=%s",
+        doc_id or "-",
+        file_label,
+        selected_fields,
+        ocr_used,
+    )
+
+    payload = {
+        "document_type": classify_document_type(text) or None,
+        "fields": {},
+        "custom_fields": {},
     }
 
     missing_fields = []
+    missing_resolved_fields = []
     resolved_fields = []
-    keyword_labels = []
+    raw_fields_by_builtin = {}
+    custom_definitions = []
     for field in selected_fields:
         if field.startswith(KEYWORD_PREFIX):
-            info = keyword_map.get(field)
+            info = keyword_map.get(field) or {}
             if not info:
                 missing_fields.append(field)
-                _log_field_result(field, None)
+                _log_field_result(field, None, strategy="keyword")
                 continue
-            field_key = info.get("field_key")
-            if field_key:
+            resolved_kind = (info.get("resolved_kind") or "custom").lower()
+            field_key = info.get("field_key") or ""
+            if resolved_kind == "builtin" and field_key:
                 resolved_fields.append(field_key)
+                raw_fields_by_builtin.setdefault(field_key, []).append(field)
             else:
-                keyword_labels.append(info.get("label", ""))
+                custom_info = dict(info)
+                custom_info["keyword_key"] = field
+                custom_definitions.append(custom_info)
             continue
         resolved_fields.append(field)
+        raw_fields_by_builtin.setdefault(field, []).append(field)
     resolved_fields = list(dict.fromkeys(resolved_fields))
-    keyword_labels = [label for label in keyword_labels if label]
-    keyword_labels = list(dict.fromkeys(keyword_labels))
 
     core = None
     if any(field in CORE_FIELD_KEYS for field in resolved_fields):
         core = _extract_core(text)
 
+    def _mark_missing_builtin(field_key: str):
+        missing_resolved_fields.append(field_key)
+        raw_fields = raw_fields_by_builtin.get(field_key) or [field_key]
+        missing_fields.extend(raw_fields)
+
+    def _log_builtin_field(field_key: str, value):
+        inferred_type = TYPE_BY_BUILTIN.get(field_key, "")
+        raw_fields = raw_fields_by_builtin.get(field_key) or [field_key]
+        for raw_field in raw_fields:
+            if raw_field.startswith(KEYWORD_PREFIX):
+                info = keyword_map.get(raw_field) or {}
+                label = info.get("label") or ""
+                match_strategy = info.get("match_strategy") or ""
+                _log_field_result(
+                    raw_field,
+                    value,
+                    strategy="builtin",
+                    inferred_type=inferred_type,
+                    match_strategy=match_strategy,
+                    label=label,
+                )
+            else:
+                _log_field_result(
+                    field_key,
+                    value,
+                    strategy="builtin",
+                    inferred_type=inferred_type,
+                )
+
     if "due_date" in resolved_fields:
         due_date = core["dates"].get("vencimento") if core else None
-        if due_date:
-            result.setdefault("dates", {})["vencimento"] = due_date
-        else:
-            missing_fields.append("due_date")
-        _log_field_result("due_date", due_date)
+        payload["fields"]["due_date"] = due_date if due_date else None
+        if not due_date:
+            _mark_missing_builtin("due_date")
+        _log_builtin_field("due_date", due_date)
 
     if "document_value" in resolved_fields:
         value = core["amounts"].get("valor_documento") if core else None
-        if value:
-            result.setdefault("amounts", {})["valor_documento"] = value
-        else:
-            missing_fields.append("document_value")
-        _log_field_result("document_value", value)
+        payload["fields"]["document_value"] = value if value else None
+        if not value:
+            _mark_missing_builtin("document_value")
+        _log_builtin_field("document_value", value)
 
     if "barcode" in resolved_fields:
         barcode = core.get("barcode") if core else None
-        if barcode and (barcode.get("linha_digitavel") or barcode.get("codigo_barras")):
-            result["barcode"] = barcode
-        else:
-            missing_fields.append("barcode")
-        _log_field_result(
-            "barcode",
-            (barcode or {}).get("codigo_barras") or (barcode or {}).get("linha_digitavel"),
-        )
+        barcode_value = (barcode or {}).get("codigo_barras") or (barcode or {}).get("linha_digitavel")
+        payload["fields"]["barcode"] = barcode_value if barcode_value else None
+        if not (barcode and (barcode.get("linha_digitavel") or barcode.get("codigo_barras"))):
+            _mark_missing_builtin("barcode")
+        _log_builtin_field("barcode", barcode_value)
 
     if "juros" in resolved_fields:
         juros = core["amounts"].get("juros") if core else None
-        if juros:
-            result.setdefault("amounts", {})["juros"] = juros
-        else:
-            missing_fields.append("juros")
-        _log_field_result("juros", juros)
+        payload["fields"]["juros"] = juros if juros else None
+        if not juros:
+            _mark_missing_builtin("juros")
+        _log_builtin_field("juros", juros)
 
     if "multa" in resolved_fields:
         multa = core["amounts"].get("multa") if core else None
-        if multa:
-            result.setdefault("amounts", {})["multa"] = multa
-        else:
-            missing_fields.append("multa")
-        _log_field_result("multa", multa)
+        payload["fields"]["multa"] = multa if multa else None
+        if not multa:
+            _mark_missing_builtin("multa")
+        _log_builtin_field("multa", multa)
 
     for field in resolved_fields:
         if field in CORE_FIELD_KEYS:
             continue
         extractor = FIELD_EXTRACTORS.get(field)
         if not extractor:
-            missing_fields.append(field)
-            _log_field_result(field, None)
+            _mark_missing_builtin(field)
+            payload["fields"][field] = None
+            _log_builtin_field(field, None)
             continue
         piece = extractor(text)
         if not piece:
-            missing_fields.append(field)
-            _log_field_result(field, None)
+            _mark_missing_builtin(field)
+            payload["fields"][field] = None
+            _log_builtin_field(field, None)
             continue
-        result.update(piece)
-        _log_field_result(field, piece.get(field))
+        value = piece.get(field)
+        payload["fields"][field] = value if value else None
+        _log_builtin_field(field, value)
 
-    custom_fields = {}
-    for label in keyword_labels:
-        value = extract_keyword_value(text, label)
+    for info in custom_definitions:
+        keyword_key = info.get("keyword_key") or ""
+        label = (info.get("label") or "").strip()
+        anchors = info.get("anchors") or []
+        inferred_type = info.get("inferred_type") or "text"
+        match_strategy = info.get("match_strategy") or ""
+        if not anchors and label:
+            anchors = [label]
+        value = _extract_custom_field(text, anchors, inferred_type)
+        field_key = keyword_key or label or inferred_type
+        payload["custom_fields"][field_key] = {
+            "label": label or field_key,
+            "value": value if value else None,
+        }
         if value:
-            custom_fields[label] = value
-            _log_field_result(label, value)
+            _log_field_result(
+                field_key,
+                value,
+                strategy="custom",
+                inferred_type=inferred_type,
+                match_strategy=match_strategy,
+                label=label,
+            )
         else:
-            missing_fields.append(label)
-            _log_field_result(label, None)
+            missing_fields.append(field_key)
+            _log_field_result(
+                field_key,
+                None,
+                strategy="custom",
+                inferred_type=inferred_type,
+                match_strategy=match_strategy,
+                label=label,
+            )
 
-    if custom_fields:
-        result["custom_fields"] = custom_fields
-
-    result["extraction"] = {
-        "selected_fields": list(dict.fromkeys(resolved_fields + keyword_labels)),
-        "missing_fields": missing_fields,
-    }
-    return result
+    missing_fields = list(dict.fromkeys(missing_fields))
+    missing_resolved = list(dict.fromkeys(missing_resolved_fields))
+    elapsed_ms = int((time.monotonic() - started_at) * 1000)
+    logger.info(
+        "process_document_done doc=%s file=%s duration_ms=%s missing=%s missing_resolved=%s resolved=%s ocr=%s",
+        doc_id or "-",
+        file_label,
+        elapsed_ms,
+        missing_fields,
+        missing_resolved,
+        resolved_fields,
+        ocr_used,
+    )
+    return sanitize_payload(payload)

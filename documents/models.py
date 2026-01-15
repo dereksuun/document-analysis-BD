@@ -49,6 +49,11 @@ class ExtractionKeyword(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="extraction_keywords")
     label = models.CharField(max_length=120)
     field_key = models.CharField(max_length=64, blank=True, default="")
+    resolved_kind = models.CharField(max_length=16, default="custom")
+    inferred_type = models.CharField(max_length=32, blank=True, default="")
+    anchors = models.JSONField(default=list)
+    match_strategy = models.CharField(max_length=24, blank=True, default="")
+    confidence = models.FloatField(default=0.0)
     normalized_label = models.CharField(max_length=160, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

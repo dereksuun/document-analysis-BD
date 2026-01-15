@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import get_valid_filename
 
 from .forms import ExtractionSettingsForm, KeywordForm, MultiUploadForm
+from .intent import resolve_intent
 from .models import (
     Document,
     DocumentStatus,
@@ -20,7 +21,7 @@ from .models import (
     ExtractionProfile,
     _normalize_keyword,
 )
-from .services import KEYWORD_PREFIX, process_document
+from .services import KEYWORD_PREFIX, process_document, sanitize_payload
 
 PAGE_SIZE = 10
 MAX_BULK = 25
@@ -57,34 +58,14 @@ def _get_keyword_map(owner, selected_fields):
     for keyword in keywords:
         mapping[f"{KEYWORD_PREFIX}{keyword.id}"] = {
             "label": keyword.label,
+            "resolved_kind": keyword.resolved_kind,
             "field_key": keyword.field_key,
+            "inferred_type": keyword.inferred_type,
+            "anchors": keyword.anchors or [],
+            "match_strategy": keyword.match_strategy,
+            "confidence": keyword.confidence,
         }
     return mapping
-
-
-FIELD_ALIASES = {
-    "vencimento": "due_date",
-    "data de vencimento": "due_date",
-    "valor": "document_value",
-    "valor do documento": "document_value",
-    "codigo de barras": "barcode",
-    "linha digitavel": "barcode",
-    "local de cobranca": "billing_address",
-    "endereco de cobranca": "billing_address",
-    "juros": "juros",
-    "multa": "multa",
-}
-
-
-def _resolve_field_key(label):
-    normalized = _normalize_keyword(label)
-    if not normalized:
-        return "", ""
-    fields = ExtractionField.objects.all()
-    for field in fields:
-        if normalized == _normalize_keyword(field.key) or normalized == _normalize_keyword(field.label):
-            return field.key, field.label
-    return FIELD_ALIASES.get(normalized, ""), ""
 
 
 def _get_profile(user):
@@ -130,7 +111,7 @@ def upload_documents(request):
                 doc.mark_processing()
                 doc.save(update_fields=["status", "processed_at", "error_message", "extracted_json"])
                 try:
-                    data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map)
+                    data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map, doc_id=str(doc.id), filename=doc.original_filename)
                     doc.mark_done(data)
                     doc.save()
                     logger.info("process_done doc=%s file=%s action=auto", doc.id, doc.original_filename)
@@ -177,31 +158,27 @@ def extraction_settings(request):
         if action == "add_keyword" and keyword_form.is_valid():
             keyword_value = keyword_form.cleaned_data.get("new_keyword") or ""
             normalized = _normalize_keyword(keyword_value)
-            field_key, matched_label = _resolve_field_key(keyword_value)
-            matches_field = bool(matched_label) and normalized == _normalize_keyword(matched_label)
             if not keyword_value:
                 keyword_form.add_error("new_keyword", "Informe uma palavra-chave.")
             elif normalized in {"", None}:
                 keyword_form.add_error("new_keyword", "Informe uma palavra-chave valida.")
-            elif matches_field:
-                enabled_fields = (
-                    form.cleaned_data["enabled_fields"] if form.is_valid() else current_fields
-                )
-                enabled_fields = list(enabled_fields)
-                if field_key not in enabled_fields:
-                    enabled_fields.append(field_key)
-                    profile.enabled_fields = enabled_fields
-                    profile.save(update_fields=["enabled_fields", "updated_at"])
-                return redirect("extraction_settings")
             elif ExtractionKeyword.objects.filter(
                 owner=request.user, normalized_label=normalized
             ).exists():
                 keyword_form.add_error("new_keyword", "Essa palavra-chave ja existe.")
             else:
+                builtin_fields = list(ExtractionField.objects.values_list("key", "label"))
+                intent = resolve_intent(keyword_value, builtin_fields, allow_llm=False)
+                anchors = intent.anchors or [keyword_value.strip()]
                 keyword = ExtractionKeyword.objects.create(
                     owner=request.user,
                     label=keyword_value,
-                    field_key=field_key,
+                    field_key=intent.builtin_key if intent.kind == "builtin" else "",
+                    resolved_kind=intent.kind,
+                    inferred_type=intent.inferred_type,
+                    anchors=anchors,
+                    match_strategy=intent.match_strategy,
+                    confidence=float(intent.confidence or 0.0),
                 )
                 enabled_fields = (
                     form.cleaned_data["enabled_fields"] if form.is_valid() else current_fields
@@ -287,7 +264,7 @@ def process_document_view(request, doc_id):
 
     try:
         keyword_map = _get_keyword_map(request.user, doc.selected_fields or [])
-        data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map)
+        data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map, doc_id=str(doc.id), filename=doc.original_filename)
         doc.mark_done(data)
         doc.save()
         logger.info("process_done doc=%s file=%s action=%s", doc.id, doc.original_filename, action)
@@ -330,7 +307,7 @@ def process_documents_bulk(request):
         doc.mark_processing()
         doc.save(update_fields=["status", "processed_at", "error_message", "extracted_json"])
         try:
-            data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map)
+            data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map, doc_id=str(doc.id), filename=doc.original_filename)
             doc.mark_done(data)
             doc.save()
             logger.info("process_done doc=%s file=%s", doc.id, doc.original_filename)
@@ -360,7 +337,7 @@ def _build_json_filename(doc):
 @login_required
 def download_document_json(request, doc_id):
     doc = get_object_or_404(Document, id=doc_id, owner=request.user)
-    json_data = doc.extracted_json or {}
+    json_data = sanitize_payload(doc.extracted_json or {})
     payload = json.dumps(json_data, ensure_ascii=False, indent=2)
     filename = _build_json_filename(doc)
     response = HttpResponse(payload, content_type="application/json")
@@ -390,7 +367,8 @@ def download_documents_json_bulk(request):
         for doc in docs:
             if not doc.extracted_json:
                 continue
-            payload = json.dumps(doc.extracted_json, ensure_ascii=False, indent=2)
+            json_data = sanitize_payload(doc.extracted_json or {})
+            payload = json.dumps(json_data, ensure_ascii=False, indent=2)
             filename = _build_json_filename(doc)
             if filename in used_names:
                 base, ext = os.path.splitext(filename)
@@ -412,5 +390,5 @@ def download_documents_json_bulk(request):
 @login_required
 def document_json_view(request, doc_id):
     doc = get_object_or_404(Document, id=doc_id, owner=request.user)
-    json_data = doc.extracted_json or {}
+    json_data = sanitize_payload(doc.extracted_json or {})
     return render(request, "documents/json.html", {"doc": doc, "json_data": json_data})

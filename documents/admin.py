@@ -70,9 +70,17 @@ class ExtractionFieldAdmin(admin.ModelAdmin):
 
 @admin.register(ExtractionKeyword)
 class ExtractionKeywordAdmin(admin.ModelAdmin):
-    list_display = ("label", "field_key", "owner", "created_at")
+    list_display = ("label", "resolved_kind", "field_key", "inferred_type", "owner", "created_at")
     list_filter = ("created_at",)
-    search_fields = ("label", "field_key", "normalized_label", "owner__username", "owner__email")
+    search_fields = (
+        "label",
+        "field_key",
+        "resolved_kind",
+        "inferred_type",
+        "normalized_label",
+        "owner__username",
+        "owner__email",
+    )
 
     def delete_model(self, request, obj):
         _remove_field_keys({f"{KEYWORD_PREFIX}{obj.id}"}, owner_id=obj.owner_id)
