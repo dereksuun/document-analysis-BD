@@ -775,13 +775,28 @@ def _extract_text_with_ocr(file_path: str) -> str:
 
 
 def extract_text_with_ocr_flag(file_path: str) -> tuple[str, bool, int]:
-    text = _extract_text_from_pdf(file_path)
+    extraction_error = None
+    try:
+        text = _extract_text_from_pdf(file_path)
+    except Exception as exc:
+        extraction_error = exc
+        text = ""
     word_count, char_count = _text_quality_stats(text)
-    if not _text_is_weak(word_count, char_count):
+    if extraction_error is None and not _text_is_weak(word_count, char_count):
         return text, False, word_count
+    if extraction_error is not None:
+        logger.warning(
+            "pdf_text_extract_failed file=%s error=%s",
+            os.path.basename(file_path),
+            extraction_error,
+        )
+        reason = "extract_error"
+    else:
+        reason = "weak_text"
     logger.info(
-        "ocr_fallback file=%s reason=weak_text chars=%s words=%s",
+        "ocr_fallback file=%s reason=%s chars=%s words=%s",
         os.path.basename(file_path),
+        reason,
         char_count,
         word_count,
     )

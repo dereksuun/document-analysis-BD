@@ -1,0 +1,2822 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "fb422327-544a-4dcf-a0f9-04ada2f1f9a9",
+    "object_repr": "VIVO TATUAPÉ.pdf (fb422327-544a-4dcf-a0f9-04ada2f1f9a9)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ed5c78ed-68d8-4cbf-9ad2-1bbff9d68aa5",
+    "object_repr": "ALUGUEL - BARREIROS 9.598,25.pdf (ed5c78ed-68d8-4cbf-9ad2-1bbff9d68aa5)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ebc39eb2-e516-4533-b303-15670a9b96f3",
+    "object_repr": "NICK CONT - CONTABILIDADE..pdf (ebc39eb2-e516-4533-b303-15670a9b96f3)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "e706db87-bf1f-4e4b-ab37-cb1c720438d2",
+    "object_repr": "ALUGUEL - MAUÁ.pdf (e706db87-bf1f-4e4b-ab37-cb1c720438d2)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "e6bff472-cd56-4973-b563-79ae258ceabf",
+    "object_repr": "EDP - ITAQUA.pdf (e6bff472-cd56-4973-b563-79ae258ceabf)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "dfdacab2-ded8-424e-b901-7247c0a0dbc6",
+    "object_repr": "SOMARK_merged_merged.pdf (dfdacab2-ded8-424e-b901-7247c0a0dbc6)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d8fc980e-a559-421e-ac2d-fbc0cdb7c5cb",
+    "object_repr": "EMBRATEL.pdf (d8fc980e-a559-421e-ac2d-fbc0cdb7c5cb)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d262e027-3bc6-47b1-8260-fc3e64089dfc",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (d262e027-3bc6-47b1-8260-fc3e64089dfc)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ce5d8087-16ec-4d3c-aca4-cade8b8de750",
+    "object_repr": "ALUGUEL - VENDA NOVA.pdf (ce5d8087-16ec-4d3c-aca4-cade8b8de750)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "c7c395cf-c108-43ab-8153-db8f130f8128",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (c7c395cf-c108-43ab-8153-db8f130f8128)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "c08ef07e-8128-41c4-9899-f6dc0e1ed683",
+    "object_repr": "GIGA - TIRADENTES.pdf (c08ef07e-8128-41c4-9899-f6dc0e1ed683)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 12,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b56855be-2163-40f0-ba12-e1d097dedcb3",
+    "object_repr": "vivo_102,93-899925638252.pdf (b56855be-2163-40f0-ba12-e1d097dedcb3)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 13,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ab84f0c5-4e13-4251-b9f4-3e6b401b5207",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (ab84f0c5-4e13-4251-b9f4-3e6b401b5207)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 14,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "a60091a9-db46-48e3-93a3-b94e11781a34",
+    "object_repr": "VT - COLABORADORES.pdf (a60091a9-db46-48e3-93a3-b94e11781a34)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 15,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "9c3b82a1-cb0b-48ec-b605-1cd7490af0ad",
+    "object_repr": "ALUGUEL - DUQUE DE CAXIAS.pdf (9c3b82a1-cb0b-48ec-b605-1cd7490af0ad)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 16,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "931f1f5c-623f-43b5-a466-32787256c72f",
+    "object_repr": "vivo_102,93-899925638252.pdf (931f1f5c-623f-43b5-a466-32787256c72f)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 17,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "8fb624b8-f219-4e07-9f59-7cc27a58f390",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (8fb624b8-f219-4e07-9f59-7cc27a58f390)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 18,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "62b5ab2f-fbda-4baf-903a-e6da3376870d",
+    "object_repr": "ALGAR.pdf (62b5ab2f-fbda-4baf-903a-e6da3376870d)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 19,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "61d4cacd-4a2e-4603-acdf-d60d6fc11a67",
+    "object_repr": "vivo_102,93-899925638252.pdf (61d4cacd-4a2e-4603-acdf-d60d6fc11a67)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 20,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "4e059a01-1155-423c-a576-560b079d1924",
+    "object_repr": "13° TERCEIRO NICK.pdf (4e059a01-1155-423c-a576-560b079d1924)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 21,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "4986aa8e-2b99-4f4d-9907-f5e3a752a927",
+    "object_repr": "SERASA - ASPREV.pdf (4986aa8e-2b99-4f4d-9907-f5e3a752a927)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 22,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3224d88e-57e2-4eba-8b1a-cb7ec850fa8a",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (3224d88e-57e2-4eba-8b1a-cb7ec850fa8a)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 23,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2957b3e6-3be6-41c0-a715-df72fb030c50",
+    "object_repr": "MONITORAMENTO ELETRONICO..pdf (2957b3e6-3be6-41c0-a715-df72fb030c50)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 24,
+  "fields": {
+    "action_time": "2026-01-12T17:40:58.666Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "21899d39-4f7d-4dbb-aa8a-6652afcd59f1",
+    "object_repr": "cispag 17.05.2025 à  08.12.2025   -  parte 21.pdf (21899d39-4f7d-4dbb-aa8a-6652afcd59f1)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 25,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "fd0d1600-a18b-4ad9-84e5-c16e27d2c6e4",
+    "object_repr": "MONITORAMENTO ELETRONICO..pdf (fd0d1600-a18b-4ad9-84e5-c16e27d2c6e4)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 26,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ec31a5e5-812d-4632-ab86-74bf3415a1d0",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (ec31a5e5-812d-4632-ab86-74bf3415a1d0)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 27,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d29398e0-69e1-4673-8c78-24b843b81b83",
+    "object_repr": "13° TERCEIRO NICK.pdf (d29398e0-69e1-4673-8c78-24b843b81b83)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 28,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ba099962-a214-4c11-bc09-32486869ec60",
+    "object_repr": "ALGAR.pdf (ba099962-a214-4c11-bc09-32486869ec60)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 29,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b7544d15-ccab-4be8-9252-9650b2d17860",
+    "object_repr": "VIVO TATUAPÉ.pdf (b7544d15-ccab-4be8-9252-9650b2d17860)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 30,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b6cb4697-4be3-4a96-93e5-14abf33dd4c0",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (b6cb4697-4be3-4a96-93e5-14abf33dd4c0)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 31,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "a57f4a41-c47c-49fb-9f8f-9893a25743a4",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (a57f4a41-c47c-49fb-9f8f-9893a25743a4)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 32,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "73ed5239-6294-42e8-bcf9-49d48b9108a6",
+    "object_repr": "GIGA - TIRADENTES.pdf (73ed5239-6294-42e8-bcf9-49d48b9108a6)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 33,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "5147633e-3f5c-4f29-9c21-80ecf1bd6d79",
+    "object_repr": "NICK CONT - CONTABILIDADE..pdf (5147633e-3f5c-4f29-9c21-80ecf1bd6d79)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 34,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "329fc0f5-dbc6-4fb9-bbd4-00ada9530c56",
+    "object_repr": "ALUGUEL - BARREIROS 9.598,25.pdf (329fc0f5-dbc6-4fb9-bbd4-00ada9530c56)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 35,
+  "fields": {
+    "action_time": "2026-01-12T18:06:55.255Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1af76e83-f993-47d2-9c79-f4c703735a00",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (1af76e83-f993-47d2-9c79-f4c703735a00)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 36,
+  "fields": {
+    "action_time": "2026-01-14T16:46:57.459Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "967dff9a-7712-4864-89bd-5f88222ce56f",
+    "object_repr": "CAGECE - CENTRO CE.pdf (967dff9a-7712-4864-89bd-5f88222ce56f)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 37,
+  "fields": {
+    "action_time": "2026-01-14T16:46:57.459Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "05637474-ecc5-4357-b4b3-e6013ab3639c",
+    "object_repr": "ALGAR.pdf (05637474-ecc5-4357-b4b3-e6013ab3639c)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 38,
+  "fields": {
+    "action_time": "2026-01-14T16:46:57.459Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "02817eea-6bb4-4469-8954-2cc3941c9e6f",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (02817eea-6bb4-4469-8954-2cc3941c9e6f)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 39,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "eb012f25-ed1f-445a-a8f5-6cca617d591b",
+    "object_repr": "ASSERTIVA.pdf (eb012f25-ed1f-445a-a8f5-6cca617d591b)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 40,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "c114f89d-c114-45e3-86ba-3d82c3ec636b",
+    "object_repr": "ALUGUEL CAUCAIA.pdf (c114f89d-c114-45e3-86ba-3d82c3ec636b)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 41,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b6ee73b3-d189-4ca9-86ca-93e6b2699487",
+    "object_repr": "WEB CENTRO - DEZ..pdf (b6ee73b3-d189-4ca9-86ca-93e6b2699487)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 42,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b3a6ea64-1230-44f4-acc9-d749d3c0b39c",
+    "object_repr": "JS - CE.pdf (b3a6ea64-1230-44f4-acc9-d749d3c0b39c)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 43,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "7bf0d592-aaa2-4888-8c8b-d246c7f07b03",
+    "object_repr": "VIVO - MATRIZ.pdf (7bf0d592-aaa2-4888-8c8b-d246c7f07b03)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 44,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "773fa397-4897-4871-b767-2c62b7f2b580",
+    "object_repr": "ENEL - CJ 81.pdf (773fa397-4897-4871-b767-2c62b7f2b580)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 45,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "6dfa32fe-2502-4015-aeae-314e44a49c93",
+    "object_repr": "EDP - ITAQUA.pdf (6dfa32fe-2502-4015-aeae-314e44a49c93)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 46,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "46b69f16-d208-4776-984f-c30b7c884cd0",
+    "object_repr": "VT - COLABORADORES.pdf (46b69f16-d208-4776-984f-c30b7c884cd0)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 47,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "455f0296-fee6-48ce-8518-e17a848d4e89",
+    "object_repr": "JS - CE.pdf (455f0296-fee6-48ce-8518-e17a848d4e89)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 48,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "38746ca9-2a0b-4e2d-837d-6fc9954516b6",
+    "object_repr": "ENEL - CJ 81.pdf (38746ca9-2a0b-4e2d-837d-6fc9954516b6)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 49,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "0bfd7946-2db2-4202-b7e8-6473827c4cb6",
+    "object_repr": "ALUGUEL - FLORIPA.pdf (0bfd7946-2db2-4202-b7e8-6473827c4cb6)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 50,
+  "fields": {
+    "action_time": "2026-01-15T12:50:42.416Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "07f35c1e-363d-42b6-9a92-8eeef69d225d",
+    "object_repr": "ASSERTIVA.pdf (07f35c1e-363d-42b6-9a92-8eeef69d225d)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 51,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.055Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d95fcb12-e1dc-48a9-9e1a-6e22a89c69f3",
+    "object_repr": "GIGA - TIRADENTES.pdf (d95fcb12-e1dc-48a9-9e1a-6e22a89c69f3)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 52,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d7c09cef-4e59-4b8b-b90b-e2aeea637c09",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (d7c09cef-4e59-4b8b-b90b-e2aeea637c09)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 53,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ce69c0f4-a58e-4c82-b975-8ae8fd39c2c9",
+    "object_repr": "ALGAR.pdf (ce69c0f4-a58e-4c82-b975-8ae8fd39c2c9)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 54,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ce65ce72-1d66-4447-b123-9db4c3aaaee1",
+    "object_repr": "ALUGUEL - JOINVILLE.pdf (ce65ce72-1d66-4447-b123-9db4c3aaaee1)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 55,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "7b3c7876-c93b-4ebe-a245-67dea7d7411b",
+    "object_repr": "VIVO - MATRIZ.pdf (7b3c7876-c93b-4ebe-a245-67dea7d7411b)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 56,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "758c7321-61dd-4421-b1d6-014daca68139",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (758c7321-61dd-4421-b1d6-014daca68139)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 57,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "62b9be52-75c4-49ad-8933-38c3b56bba45",
+    "object_repr": "EDP - ITAQUA.pdf (62b9be52-75c4-49ad-8933-38c3b56bba45)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 58,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "489e99a7-ff0f-4991-b21f-4b5c0777508f",
+    "object_repr": "VIVO TATUAPÉ.pdf (489e99a7-ff0f-4991-b21f-4b5c0777508f)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 59,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "48260926-6683-4293-952b-3ee476fcbf32",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (48260926-6683-4293-952b-3ee476fcbf32)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 60,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "47cfcfad-b5aa-44db-bf40-67ef72394123",
+    "object_repr": "13° TERCEIRO NICK.pdf (47cfcfad-b5aa-44db-bf40-67ef72394123)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 61,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2d258063-a4e1-4db9-a727-c126e34d0dc5",
+    "object_repr": "vivo_102,93-899925638252.pdf (2d258063-a4e1-4db9-a727-c126e34d0dc5)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 62,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "260b0eac-b699-46cf-ab5f-5c7aef0b2d3b",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (260b0eac-b699-46cf-ab5f-5c7aef0b2d3b)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 63,
+  "fields": {
+    "action_time": "2026-01-15T13:30:05.056Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "0d9a1d4c-c7fa-4335-a9d1-d355a11853ea",
+    "object_repr": "ENEL - CJ 81.pdf (0d9a1d4c-c7fa-4335-a9d1-d355a11853ea)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 64,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "bdf600d9-d31b-4159-b98b-1e6a1da5006d",
+    "object_repr": "VIVO - MATRIZ.pdf (bdf600d9-d31b-4159-b98b-1e6a1da5006d)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 65,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "a83e93a2-44ff-439a-8c93-03d46968bf94",
+    "object_repr": "13° TERCEIRO NICK.pdf (a83e93a2-44ff-439a-8c93-03d46968bf94)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 66,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "8d3598bd-4c95-4d5b-80e2-8747221f0e40",
+    "object_repr": "ENEL - CJ 81.pdf (8d3598bd-4c95-4d5b-80e2-8747221f0e40)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 67,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "7fe896c6-69f0-420a-8379-f2c860beb6d6",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (7fe896c6-69f0-420a-8379-f2c860beb6d6)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 68,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "7cec43ab-97d9-4669-b636-e56723fe0cbd",
+    "object_repr": "GIGA - TIRADENTES.pdf (7cec43ab-97d9-4669-b636-e56723fe0cbd)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 69,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "763be06f-dc3d-4a7b-9156-dd7d26fcaf03",
+    "object_repr": "ALUGUEL - JOINVILLE.pdf (763be06f-dc3d-4a7b-9156-dd7d26fcaf03)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 70,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "48821fdd-5c5f-4a05-acd1-4b781704dcd7",
+    "object_repr": "ALGAR.pdf (48821fdd-5c5f-4a05-acd1-4b781704dcd7)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 71,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "28e6b102-03b3-4317-9cce-6ac7e1fcc3fd",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (28e6b102-03b3-4317-9cce-6ac7e1fcc3fd)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 72,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1ee21d2c-0396-4081-a028-f578d0981a96",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (1ee21d2c-0396-4081-a028-f578d0981a96)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 73,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "127d1e01-aa47-4211-b823-d9db4fbcfa65",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (127d1e01-aa47-4211-b823-d9db4fbcfa65)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 74,
+  "fields": {
+    "action_time": "2026-01-15T14:40:25.790Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "00177400-7575-4fff-a585-2ed39e582450",
+    "object_repr": "VIVO TATUAPÉ.pdf (00177400-7575-4fff-a585-2ed39e582450)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 75,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "5",
+    "object_repr": "ExtractionField(cnpj)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 76,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "6",
+    "object_repr": "ExtractionField(cpf)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 77,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "3",
+    "object_repr": "ExtractionField(barcode)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 78,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "1",
+    "object_repr": "ExtractionField(due_date)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 79,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "4",
+    "object_repr": "ExtractionField(billing_address)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 80,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "10",
+    "object_repr": "ExtractionField(instructions)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 81,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "11",
+    "object_repr": "ExtractionField(juros)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 82,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "12",
+    "object_repr": "ExtractionField(multa)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 83,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "7",
+    "object_repr": "ExtractionField(payee_name)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 84,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "8",
+    "object_repr": "ExtractionField(payer_name)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 85,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "9",
+    "object_repr": "ExtractionField(document_number)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 86,
+  "fields": {
+    "action_time": "2026-01-15T14:54:47.817Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "2",
+    "object_repr": "ExtractionField(document_value)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 87,
+  "fields": {
+    "action_time": "2026-01-15T14:55:01.153Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b1555745-853f-4803-962d-9664ab06d547",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (b1555745-853f-4803-962d-9664ab06d547)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 88,
+  "fields": {
+    "action_time": "2026-01-15T14:55:01.153Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "943bb594-e53b-4b50-b583-6e588d05d4ac",
+    "object_repr": "ALGAR.pdf (943bb594-e53b-4b50-b583-6e588d05d4ac)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 89,
+  "fields": {
+    "action_time": "2026-01-15T14:55:01.153Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "69ccbfe0-f788-4590-b81f-7f6eb8bdd351",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (69ccbfe0-f788-4590-b81f-7f6eb8bdd351)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 90,
+  "fields": {
+    "action_time": "2026-01-15T14:55:01.153Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2c8c6e40-aaf6-47fa-b456-c15ca58ed2ca",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (2c8c6e40-aaf6-47fa-b456-c15ca58ed2ca)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 91,
+  "fields": {
+    "action_time": "2026-01-15T14:55:01.153Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "23a14155-2d0f-453f-b9df-b49ee9af7072",
+    "object_repr": "VIVO TATUAPÉ.pdf (23a14155-2d0f-453f-b9df-b49ee9af7072)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 92,
+  "fields": {
+    "action_time": "2026-01-15T14:55:01.153Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "172ab7d6-5505-4a03-adb6-3136d3c788d4",
+    "object_repr": "GIGA - TIRADENTES.pdf (172ab7d6-5505-4a03-adb6-3136d3c788d4)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 93,
+  "fields": {
+    "action_time": "2026-01-15T16:33:32.079Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "a4168487-ba46-4c35-9617-e8ab0ce4b277",
+    "object_repr": "ALGAR.pdf (a4168487-ba46-4c35-9617-e8ab0ce4b277)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 94,
+  "fields": {
+    "action_time": "2026-01-15T16:33:32.079Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3fe231cb-46b6-4f58-849e-1baf2f753352",
+    "object_repr": "VIVO - MATRIZ.pdf (3fe231cb-46b6-4f58-849e-1baf2f753352)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 95,
+  "fields": {
+    "action_time": "2026-01-15T16:33:32.079Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3f749373-bad7-4350-9798-f8ceeb2124f8",
+    "object_repr": "VIVO TATUAPÉ.pdf (3f749373-bad7-4350-9798-f8ceeb2124f8)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 96,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.008Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "f5e34894-a19c-406b-9dd1-05c17c6dd4b9",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (f5e34894-a19c-406b-9dd1-05c17c6dd4b9)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 97,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.008Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "f12b48e0-01c0-4ce2-acf5-d1dcb26de7ad",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (f12b48e0-01c0-4ce2-acf5-d1dcb26de7ad)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 98,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.008Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ec3b69b2-d3cd-4319-bf0b-9c8fa0e83226",
+    "object_repr": "VIVO TATUAPÉ.pdf (ec3b69b2-d3cd-4319-bf0b-9c8fa0e83226)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 99,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.008Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "cc129147-e66d-4fbf-a949-9ef0150597d5",
+    "object_repr": "ALUGUEL - JOINVILLE.pdf (cc129147-e66d-4fbf-a949-9ef0150597d5)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 100,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.009Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "abc8b598-42d3-4d9b-a3a0-fccb07bbacbd",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (abc8b598-42d3-4d9b-a3a0-fccb07bbacbd)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 101,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.009Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "8388fe5c-13aa-48ac-909a-215e8922ec24",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (8388fe5c-13aa-48ac-909a-215e8922ec24)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 102,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.009Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3ff9b533-29a8-4532-bc17-dd855caf471a",
+    "object_repr": "13° TERCEIRO NICK.pdf (3ff9b533-29a8-4532-bc17-dd855caf471a)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 103,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.009Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2125da48-35b8-4ce9-b7aa-cfc1a07ab697",
+    "object_repr": "GIGA - TIRADENTES.pdf (2125da48-35b8-4ce9-b7aa-cfc1a07ab697)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 104,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.009Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "160a0100-c265-4b61-aff0-5c4d27209d5f",
+    "object_repr": "VIVO - MATRIZ.pdf (160a0100-c265-4b61-aff0-5c4d27209d5f)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 105,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.009Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "0d3239e0-781c-4bca-b10b-8b142e96ac94",
+    "object_repr": "ALGAR.pdf (0d3239e0-781c-4bca-b10b-8b142e96ac94)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 106,
+  "fields": {
+    "action_time": "2026-01-15T18:26:54.009Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "0ccfc039-31aa-4f4c-894c-5fc2c6a52218",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (0ccfc039-31aa-4f4c-894c-5fc2c6a52218)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 107,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "e919a59b-2e1f-4010-a457-55036706cb9d",
+    "object_repr": "ALGAR.pdf (e919a59b-2e1f-4010-a457-55036706cb9d)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 108,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d6b0fc98-f999-4212-8c4d-6d2fc8048952",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (d6b0fc98-f999-4212-8c4d-6d2fc8048952)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 109,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d52b0089-e9e5-44c6-95e2-3f111520babc",
+    "object_repr": "vivo_102,93-899925638252.pdf (d52b0089-e9e5-44c6-95e2-3f111520babc)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 110,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ca1efff0-0202-4855-a958-86b07e7236f0",
+    "object_repr": "13° TERCEIRO NICK.pdf (ca1efff0-0202-4855-a958-86b07e7236f0)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 111,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "c7ff8155-3cf2-4b85-bf7e-98d9e8052067",
+    "object_repr": "ALUGUEL - JOINVILLE.pdf (c7ff8155-3cf2-4b85-bf7e-98d9e8052067)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 112,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b411619f-8f70-4b2d-b87c-a3020181262b",
+    "object_repr": "VIVO TATUAPÉ.pdf (b411619f-8f70-4b2d-b87c-a3020181262b)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 113,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b4099823-0d02-4b9f-ba98-8902ae9407a6",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (b4099823-0d02-4b9f-ba98-8902ae9407a6)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 114,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ac81c3a3-f291-40b3-b432-352ddf17ecf9",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (ac81c3a3-f291-40b3-b432-352ddf17ecf9)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 115,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "abb038c7-cb26-4580-b3ef-f3f7166ad67b",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (abb038c7-cb26-4580-b3ef-f3f7166ad67b)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 116,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "a33c736e-8094-4ba5-aac5-32d4d326a741",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (a33c736e-8094-4ba5-aac5-32d4d326a741)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 117,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "98de9efa-4e6e-4c8e-8c35-f7262b20ab3c",
+    "object_repr": "GIGA - TIRADENTES.pdf (98de9efa-4e6e-4c8e-8c35-f7262b20ab3c)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 118,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "8a257d54-34d0-4188-9c09-a15e2807e548",
+    "object_repr": "ALUGUEL - JOINVILLE.pdf (8a257d54-34d0-4188-9c09-a15e2807e548)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 119,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "892422f9-0b7b-411e-bb76-8a457975dd84",
+    "object_repr": "VIVO - MATRIZ.pdf (892422f9-0b7b-411e-bb76-8a457975dd84)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 120,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "7b8936cf-7e77-4d86-a593-c4443e08c724",
+    "object_repr": "vivo_102,93-899925638252.pdf (7b8936cf-7e77-4d86-a593-c4443e08c724)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 121,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "630b4e38-e411-46cd-8c04-54ef847454b3",
+    "object_repr": "GIGA - TIRADENTES.pdf (630b4e38-e411-46cd-8c04-54ef847454b3)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 122,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "601fd0cb-c2d9-445b-bb50-dc27e8743964",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (601fd0cb-c2d9-445b-bb50-dc27e8743964)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 123,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "5c78c89a-b893-49e4-a849-0d8a506153a5",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (5c78c89a-b893-49e4-a849-0d8a506153a5)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 124,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "53ad589c-3101-42ec-a9ec-76e0dcf71f0b",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (53ad589c-3101-42ec-a9ec-76e0dcf71f0b)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 125,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "47e15143-a5ca-43c1-83d2-eeff8c782934",
+    "object_repr": "VIVO - MATRIZ.pdf (47e15143-a5ca-43c1-83d2-eeff8c782934)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 126,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "237887f2-8c2f-4ce2-a28c-c28e3edc3586",
+    "object_repr": "ALGAR.pdf (237887f2-8c2f-4ce2-a28c-c28e3edc3586)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 127,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1dfc8913-e84e-4dab-a4dd-e564c272dbb0",
+    "object_repr": "13° TERCEIRO NICK.pdf (1dfc8913-e84e-4dab-a4dd-e564c272dbb0)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 128,
+  "fields": {
+    "action_time": "2026-01-15T19:00:15.431Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "14fd7d2f-1f29-4e39-813b-de2b899c2c39",
+    "object_repr": "VIVO TATUAPÉ.pdf (14fd7d2f-1f29-4e39-813b-de2b899c2c39)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 129,
+  "fields": {
+    "action_time": "2026-01-15T19:03:39.335Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "c20f1658-ec4e-443a-b077-016ab1d07f0c",
+    "object_repr": "VIVO - MATRIZ.pdf (c20f1658-ec4e-443a-b077-016ab1d07f0c)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 130,
+  "fields": {
+    "action_time": "2026-01-15T19:03:39.335Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "720c7a84-400f-4407-90e7-5c3582f97e10",
+    "object_repr": "VIVO TATUAPÉ.pdf (720c7a84-400f-4407-90e7-5c3582f97e10)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 131,
+  "fields": {
+    "action_time": "2026-01-15T19:03:39.335Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "33d018c1-90b4-4f2f-888d-a41acb2c57bd",
+    "object_repr": "VIVO - MATRIZ.pdf (33d018c1-90b4-4f2f-888d-a41acb2c57bd)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 132,
+  "fields": {
+    "action_time": "2026-01-16T13:49:16.388Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "c2f75c93-2a67-4544-814c-1ca9a666543f",
+    "object_repr": "VIVO - MATRIZ.pdf (c2f75c93-2a67-4544-814c-1ca9a666543f)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 133,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "db9dc842-851b-48b1-8ed5-7f7d00f6bb42",
+    "object_repr": "ENEL - CJ 81.pdf (db9dc842-851b-48b1-8ed5-7f7d00f6bb42)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 134,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "bcdb094e-ba89-46b3-8f84-10b2a76104a8",
+    "object_repr": "aluguel jd fontalis.pdf (bcdb094e-ba89-46b3-8f84-10b2a76104a8)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 135,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b6671240-85b6-4537-b792-9d41985445a2",
+    "object_repr": "EDP - ITAQUA.pdf (b6671240-85b6-4537-b792-9d41985445a2)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 136,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b5bef4ac-b876-4bf7-a528-9e48049d210a",
+    "object_repr": "ALUGUEL CAUCAIA.pdf (b5bef4ac-b876-4bf7-a528-9e48049d210a)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 137,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b3899023-3f48-4a97-8d47-df4259c1a8ba",
+    "object_repr": "COMPESA SANTO AMARO PE.pdf (b3899023-3f48-4a97-8d47-df4259c1a8ba)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 138,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "abd7ff52-8bf2-4e57-a0ec-f70111fc94ba",
+    "object_repr": "ALUGUEL -SANTOS.pdf (abd7ff52-8bf2-4e57-a0ec-f70111fc94ba)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 139,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "a6c5e208-9c80-4ef8-87ee-7ee24c1eefc0",
+    "object_repr": "CAGECE - CENTRO CE.pdf (a6c5e208-9c80-4ef8-87ee-7ee24c1eefc0)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 140,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "72d6d998-74a5-4ec4-a5a4-fb9d11517ebe",
+    "object_repr": "CEMIG VENDA NOVA 525,20.pdf (72d6d998-74a5-4ec4-a5a4-fb9d11517ebe)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 141,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "71151881-e0f9-4886-bb2c-9ea386512721",
+    "object_repr": "EMBRATEL.pdf (71151881-e0f9-4886-bb2c-9ea386512721)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 142,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "4bd2d6a7-1e4e-4f68-acc1-8a37963cdc56",
+    "object_repr": "FIDUCIAL -ALUGUEL CENTRO - CE 5233,86.pdf (4bd2d6a7-1e4e-4f68-acc1-8a37963cdc56)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 143,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "4b84f01b-56b7-4191-a9b7-f479dd5c7b6d",
+    "object_repr": "CONDOMINIO - CJ NACIONAL.pdf (4b84f01b-56b7-4191-a9b7-f479dd5c7b6d)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 144,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3eeb9bb4-5632-43fb-8f9f-3175cb7737b5",
+    "object_repr": "ALUGUEL ITAJAI.pdf (3eeb9bb4-5632-43fb-8f9f-3175cb7737b5)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 145,
+  "fields": {
+    "action_time": "2026-01-16T18:49:05.729Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "157647f4-32d7-4f0c-8713-66bbf55a2c5b",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (157647f4-32d7-4f0c-8713-66bbf55a2c5b)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 146,
+  "fields": {
+    "action_time": "2026-01-16T19:09:09.837Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "c4299c71-fcbd-4293-8fbb-a74e227328d1",
+    "object_repr": "5-RECEITA FEDERAL - SALGADO - RH.pdf (c4299c71-fcbd-4293-8fbb-a74e227328d1)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 147,
+  "fields": {
+    "action_time": "2026-01-16T19:09:09.837Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b47b2b05-b3a9-46fd-890f-daab02342a92",
+    "object_repr": "AGUAS DO RIO - DUQUE DE CAXIAS.pdf (b47b2b05-b3a9-46fd-890f-daab02342a92)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 148,
+  "fields": {
+    "action_time": "2026-01-16T19:09:09.837Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "71ec3efe-b81f-47c6-af8e-81c59e171bab",
+    "object_repr": "ALGAR.pdf (71ec3efe-b81f-47c6-af8e-81c59e171bab)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 149,
+  "fields": {
+    "action_time": "2026-01-16T19:09:09.837Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "706c9ca7-481b-4748-9ab2-b61b48e2f1ed",
+    "object_repr": "AGE - INTERNET BRASILIA.pdf (706c9ca7-481b-4748-9ab2-b61b48e2f1ed)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 150,
+  "fields": {
+    "action_time": "2026-01-16T19:09:09.837Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "656ffa69-f001-4a37-b661-bba7ef2e6ca4",
+    "object_repr": "ENEL - CJ 81.pdf (656ffa69-f001-4a37-b661-bba7ef2e6ca4)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 151,
+  "fields": {
+    "action_time": "2026-01-16T19:09:09.837Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1f6bbfe4-32ee-4500-aeec-a14624e37382",
+    "object_repr": "13° TERCEIRO NICK.pdf (1f6bbfe4-32ee-4500-aeec-a14624e37382)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 152,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "fcd083ee-4b05-426a-ad09-c20811ed7cef",
+    "object_repr": "VIVO TATUAPÉ.pdf (fcd083ee-4b05-426a-ad09-c20811ed7cef)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 153,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "e5a44017-14df-47cf-b7d1-342463dc82bf",
+    "object_repr": "ALUGUEL CAUCAIA.pdf (e5a44017-14df-47cf-b7d1-342463dc82bf)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 154,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "dee472b4-2e0c-424a-9b41-8c96d970546e",
+    "object_repr": "CV_Déryck_Freitas (2).pdf (dee472b4-2e0c-424a-9b41-8c96d970546e)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 155,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "de63e548-9acf-487b-b246-0d0f9c7e63d3",
+    "object_repr": "aluguel jd fontalis.pdf (de63e548-9acf-487b-b246-0d0f9c7e63d3)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 156,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "dbbc67ff-240c-487e-83d6-e3f6bec29455",
+    "object_repr": "CAGECE - CENTRO CE.pdf (dbbc67ff-240c-487e-83d6-e3f6bec29455)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 157,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d64e85cf-194f-4396-ad3c-a92190f9ad06",
+    "object_repr": "ENEL - CJ 81.pdf (d64e85cf-194f-4396-ad3c-a92190f9ad06)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 158,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "d1f77885-bc13-48d6-878d-41d9211974d8",
+    "object_repr": "SABESP - SANTO AMARO.pdf (d1f77885-bc13-48d6-878d-41d9211974d8)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 159,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "cdcf1cf1-f5c7-45c9-a94c-b5e9d0eb4c3f",
+    "object_repr": "SP IMOVEL - COB 101.pdf (cdcf1cf1-f5c7-45c9-a94c-b5e9d0eb4c3f)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 160,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "ca1a5320-4575-4bbd-a512-59e43500b8fc",
+    "object_repr": "SABESP JD FONTALIS.pdf (ca1a5320-4575-4bbd-a512-59e43500b8fc)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 161,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "c5b2e55e-1f73-4138-b538-b363369468b9",
+    "object_repr": "WINET.pdf (c5b2e55e-1f73-4138-b538-b363369468b9)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 162,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "bae9bbae-94eb-45e8-b8c3-2b764732e7e6",
+    "object_repr": "vivo_102,93-899925638252.pdf (bae9bbae-94eb-45e8-b8c3-2b764732e7e6)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 163,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "b39e2397-4680-4ae8-99b0-4a3108f57a6e",
+    "object_repr": "EDP - ITAQUA.pdf (b39e2397-4680-4ae8-99b0-4a3108f57a6e)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 164,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "a7f97fd7-333a-49b5-af0f-798862527a0f",
+    "object_repr": "cv_deryck_freitas_PT-BR.pdf (a7f97fd7-333a-49b5-af0f-798862527a0f)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 165,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "9e8a591c-6343-40e9-86ae-7252fa9f1ae8",
+    "object_repr": "ALUGUEL - JOINVILLE.pdf (9e8a591c-6343-40e9-86ae-7252fa9f1ae8)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 166,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "9d2feed1-99a7-4e40-aa4b-68f0dba5d734",
+    "object_repr": "SABESP - SANTO AMARO.pdf (9d2feed1-99a7-4e40-aa4b-68f0dba5d734)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 167,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "9a677e5c-9b07-4238-9b8e-0da3e9abf60a",
+    "object_repr": "Boleto-PIX-Fatura-HOJE.pdf (9a677e5c-9b07-4238-9b8e-0da3e9abf60a)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 168,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "97177dee-208d-4ff4-b13d-aef7d5a00947",
+    "object_repr": "OBVIUS -  UNIDADE PINA.pdf (97177dee-208d-4ff4-b13d-aef7d5a00947)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 169,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "7fff0052-36bf-4967-b823-df1c93c67576",
+    "object_repr": "TURBO CLOUD.pdf (7fff0052-36bf-4967-b823-df1c93c67576)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 170,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "7f9f0291-1725-40e9-8305-7a9fc2f661dc",
+    "object_repr": "SABESP JD FONTALIS.pdf (7f9f0291-1725-40e9-8305-7a9fc2f661dc)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 171,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "775261dd-ac5f-41f4-99e0-cb221e03e1c7",
+    "object_repr": "VIVO - MATRIZ.pdf (775261dd-ac5f-41f4-99e0-cb221e03e1c7)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 172,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "71d9f41a-71a6-444b-8f44-5716707942e0",
+    "object_repr": "AMIL - SALGADO.pdf (71d9f41a-71a6-444b-8f44-5716707942e0)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 173,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "6e28cfb8-6543-4b1b-a230-5ec57e6aa8e2",
+    "object_repr": "ALGAR.pdf (6e28cfb8-6543-4b1b-a230-5ec57e6aa8e2)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 174,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "67b419e2-415a-4cba-a896-8e407abdaf24",
+    "object_repr": "13° TERCEIRO NICK.pdf (67b419e2-415a-4cba-a896-8e407abdaf24)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 175,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "51f05343-0c69-4fb7-9ca0-0fc4b0b9c330",
+    "object_repr": "1-LABORAL - SALGADO.pdf (51f05343-0c69-4fb7-9ca0-0fc4b0b9c330)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 176,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "4644dd07-6cd8-4883-a25b-be3afd24c810",
+    "object_repr": "NEOENERGIA - AV SETE.pdf (4644dd07-6cd8-4883-a25b-be3afd24c810)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 177,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "339fcca3-3f52-4ba5-aa58-734a45cdcbfe",
+    "object_repr": "SKYMAIL.pdf (339fcca3-3f52-4ba5-aa58-734a45cdcbfe)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 178,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2fb72625-a78d-4af9-9c43-9cce20ed7c45",
+    "object_repr": "SARA CV (1).pdf (2fb72625-a78d-4af9-9c43-9cce20ed7c45)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 179,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "218de82b-4fb8-4658-956e-1a81c72823fa",
+    "object_repr": "CONDOMINIO - BARREIROS.pdf (218de82b-4fb8-4658-956e-1a81c72823fa)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 180,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "12bf0f3d-6387-4326-844f-7d88b224ccd6",
+    "object_repr": "GIGA - TIRADENTES.pdf (12bf0f3d-6387-4326-844f-7d88b224ccd6)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 181,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "0facfc83-26ef-4e68-985a-c94c23fb4af4",
+    "object_repr": "1 - CORREIOS.pdf (0facfc83-26ef-4e68-985a-c94c23fb4af4)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 182,
+  "fields": {
+    "action_time": "2026-01-20T11:56:22.646Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "00503cf3-e986-44e1-8ef1-e89c2c3ff26d",
+    "object_repr": "5-RECEITA FEDERAL - SALGADO - RH.pdf (00503cf3-e986-44e1-8ef1-e89c2c3ff26d)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$DwssH9nDB9L6iWf504W26e$CDqJeoD4gfxlL/Em0OfecAYTEJO6f6+TwvdXUTxySA4=",
+    "last_login": "2026-01-20T11:37:50.305Z",
+    "is_superuser": true,
+    "username": "Deryck",
+    "first_name": "",
+    "last_name": "",
+    "email": "deryck.ferreira30@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-01-07T19:32:13.618Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "120z53nnj20sb1jp4calisq8gf3osf51",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vfH4G:rBy1GTFLNz7f6Tqhc7enJq9lO3vlvwnjObsHgzzCtLY",
+    "expire_date": "2026-01-26T12:30:44.437Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "42sjglisoqel3mtwju7tqelslsopg9yl",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vgkAd:84C9vWgrlOJqCD4hN-W36S8dPI6NXqNf65S1YsIs4NA",
+    "expire_date": "2026-01-30T13:47:23.963Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "45iyaw9eegfdpgbxh3fvgy6dbp2vpjxl",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vgSZZ:zxNqsvzWUoeqR1iBbMYuJmxX55wHShoGEMSOEWHNeaI",
+    "expire_date": "2026-01-29T18:59:57.925Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "4pc6m2ac193q2pnc3p4fyxkxlhh8zozy",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vfMBu:Ulz6Es2NHP6uudld6J4WnHIAlVOewqhGaHlo05uVT-4",
+    "expire_date": "2026-01-26T17:58:58.514Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "a7kf8qptslnjwd4zbx0o1kafqjzjm8fy",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vg2ou:Q2oO__1FNZfV-aOgqN17uasbzFK_sC0B27rPOMIUGQo",
+    "expire_date": "2026-01-28T15:30:04.346Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "efzzr4c00qmmvwkkstfqjdl7onh0qzu3",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vgoJR:2G5DHKZsVaYnsIs8Cr-yRHcL-WdOy83YXLLsIVg1m1s",
+    "expire_date": "2026-01-30T18:12:45.651Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "evg4wvkmo40zxrit8qk5iy1y4z6z59xe",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vgMSZ:Dza8-XUu-588LUDfHch2b6A6mJ8-8n5Z4PL4aZXDX8M",
+    "expire_date": "2026-01-29T12:28:19.421Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "i34qre2s9etuxk6jh9us8oss8ofuwty8",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vfMO3:JuykAtDl0SYr0OcKvkOTuYkUF59G_LIpBNmPHcMBS-U",
+    "expire_date": "2026-01-26T18:11:31.693Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "jhpudro04w1ibmv9wkhcnen4j8rscilx",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vfLzb:IRrFw-rm6QDRzI0yF_5TTJDGj8asau0-kGkVQfVaD2Y",
+    "expire_date": "2026-01-26T17:46:15.586Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "pnkfb38x37yqcficuaf4ml3o0qce78qs",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1viA3S:LEzFcm8nlzB3Ku_Ta7wQf_Zobyii6B4MtuxExNr_lnI",
+    "expire_date": "2026-02-03T11:37:50.308Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "sb8o24eu139od3sgl7x7l1y9ghu2xk87",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vgOWB:PA2NwJP83jwPWJykMyQ5t-I0PG_PozLeOGCy_sIAFQQ",
+    "expire_date": "2026-01-29T14:40:11.003Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ux7p1yw83dqe8cuce9wd46t822pd0oom",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vgS3H:yPFr_W5LkPMrAS9X81kSX2S-O-CCjwAuQdPN2EG0tNQ",
+    "expire_date": "2026-01-29T18:26:35.773Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "vltbvz91yz62hs5l8fwpagkanxmllvii",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vfkEs:GhENqEi1nXECMs8HmVTlvm8tKPkG-4kSRGSOHlJYGmo",
+    "expire_date": "2026-01-27T19:39:38.312Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "x94z9egbsqp2160vw3u6n45gvkpkhait",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQBf-FsyEFFgoevfcbCLCLVA0kpT0Z_92Q9KDXNzPvzXw49uKPTptfkV2ZYJffLYb0pDoAPkK9N55a3bc18qHwk3a-NKTX7XT_DkroZdTSojXCBUFzdmrOGJwjyKjl5EhkMNYgaIBJJiNU0spMOmIG0ApAKvb5AtjVNvU:1vfMZn:2e00SkE8R50X3FHxDCJan31BoyUCH_fNmT8WEnIKjPE",
+    "expire_date": "2026-01-26T18:23:39.050Z"
+  }
+},
+{
+  "model": "documents.extractionprofile",
+  "pk": 1,
+  "fields": {
+    "owner": 1,
+    "enabled_fields": [
+      "keyword:15",
+      "keyword:6",
+      "keyword:7",
+      "keyword:16",
+      "keyword:13",
+      "keyword:14",
+      "keyword:12",
+      "keyword:11",
+      "keyword:8",
+      "keyword:17",
+      "keyword:9",
+      "keyword:18"
+    ],
+    "updated_at": "2026-01-16T19:09:45.038Z"
+  }
+},
+{
+  "model": "documents.extractionfield",
+  "pk": 13,
+  "fields": {
+    "key": "payee_cnpj",
+    "label": "CNPJ do cedente",
+    "created_at": "2026-01-15T18:58:26.700Z"
+  }
+},
+{
+  "model": "documents.extractionfield",
+  "pk": 14,
+  "fields": {
+    "key": "payer_address",
+    "label": "Endereco do pagador",
+    "created_at": "2026-01-15T18:58:26.702Z"
+  }
+},
+{
+  "model": "documents.extractionfield",
+  "pk": 15,
+  "fields": {
+    "key": "payer_cnpj",
+    "label": "CNPJ do pagador",
+    "created_at": "2026-01-15T18:58:26.702Z"
+  }
+},
+{
+  "model": "documents.extractionfield",
+  "pk": 16,
+  "fields": {
+    "key": "payee_address",
+    "label": "Endereco do cedente",
+    "created_at": "2026-01-15T18:58:26.702Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 6,
+  "fields": {
+    "owner": 1,
+    "label": "CNPJ",
+    "field_key": "payee_cnpj",
+    "resolved_kind": "builtin",
+    "inferred_type": "cnpj",
+    "value_type": "cnpj",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "CNPJ"
+    ],
+    "match_strategy": "synonym",
+    "confidence": 1.0,
+    "normalized_label": "cnpj",
+    "created_at": "2026-01-15T14:55:17.506Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 7,
+  "fields": {
+    "owner": 1,
+    "label": "CPF",
+    "field_key": "cpf",
+    "resolved_kind": "builtin",
+    "inferred_type": "cpf",
+    "value_type": "cpf",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "CPF"
+    ],
+    "match_strategy": "synonym",
+    "confidence": 1.0,
+    "normalized_label": "cpf",
+    "created_at": "2026-01-15T14:55:23.337Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 8,
+  "fields": {
+    "owner": 1,
+    "label": "código de barras",
+    "field_key": "barcode",
+    "resolved_kind": "builtin",
+    "inferred_type": "barcode",
+    "value_type": "barcode",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "código de barras",
+      "linha digitavel",
+      "barcode"
+    ],
+    "match_strategy": "synonym",
+    "confidence": 1.0,
+    "normalized_label": "codigo de barras",
+    "created_at": "2026-01-15T14:57:38.181Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 9,
+  "fields": {
+    "owner": 1,
+    "label": "valor do documento",
+    "field_key": "document_value",
+    "resolved_kind": "builtin",
+    "inferred_type": "money",
+    "value_type": "money",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "valor do documento",
+      "valor",
+      "valor total",
+      "total a pagar"
+    ],
+    "match_strategy": "synonym",
+    "confidence": 1.0,
+    "normalized_label": "valor do documento",
+    "created_at": "2026-01-15T15:22:47.613Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 11,
+  "fields": {
+    "owner": 1,
+    "label": "aviso",
+    "field_key": "",
+    "resolved_kind": "custom",
+    "inferred_type": "block",
+    "value_type": "block",
+    "strategy": "below_n_lines",
+    "strategy_params": {
+      "max_lines": 3
+    },
+    "anchors": [
+      "aviso"
+    ],
+    "match_strategy": "custom",
+    "confidence": 0.0,
+    "normalized_label": "aviso",
+    "created_at": "2026-01-15T18:27:32.612Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 12,
+  "fields": {
+    "owner": 1,
+    "label": "Endereço de cobrança",
+    "field_key": "payer_address",
+    "resolved_kind": "builtin",
+    "inferred_type": "address",
+    "value_type": "address",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "Endereço de cobrança",
+      "local de cobranca"
+    ],
+    "match_strategy": "synonym",
+    "confidence": 1.0,
+    "normalized_label": "endereco de cobranca",
+    "created_at": "2026-01-15T18:27:48.475Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 13,
+  "fields": {
+    "owner": 1,
+    "label": "Endereco do pagador",
+    "field_key": "payer_address",
+    "resolved_kind": "builtin",
+    "inferred_type": "block",
+    "value_type": "block",
+    "strategy": "below_n_lines",
+    "strategy_params": {
+      "max_lines": 3
+    },
+    "anchors": [
+      "Endereco do pagador",
+      "endereco de cobranca",
+      "local de cobranca",
+      "endereco do sacado",
+      "endereco do cliente"
+    ],
+    "match_strategy": "synonym",
+    "confidence": 1.0,
+    "normalized_label": "endereco do pagador",
+    "created_at": "2026-01-15T19:02:53.090Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 14,
+  "fields": {
+    "owner": 1,
+    "label": "Endereço Consolação",
+    "field_key": "",
+    "resolved_kind": "custom",
+    "inferred_type": "address",
+    "value_type": "address",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "Endereço Consolação"
+    ],
+    "match_strategy": "custom",
+    "confidence": 0.0,
+    "normalized_label": "endereco consolacao",
+    "created_at": "2026-01-15T19:03:55.674Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 15,
+  "fields": {
+    "owner": 1,
+    "label": "CEP",
+    "field_key": "",
+    "resolved_kind": "custom",
+    "inferred_type": "text",
+    "value_type": "text",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "CEP"
+    ],
+    "match_strategy": "custom",
+    "confidence": 0.0,
+    "normalized_label": "cep",
+    "created_at": "2026-01-16T18:33:26.339Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 16,
+  "fields": {
+    "owner": 1,
+    "label": "ENEL",
+    "field_key": "",
+    "resolved_kind": "custom",
+    "inferred_type": "text",
+    "value_type": "text",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "ENEL"
+    ],
+    "match_strategy": "custom",
+    "confidence": 0.0,
+    "normalized_label": "enel",
+    "created_at": "2026-01-16T18:48:44.015Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 17,
+  "fields": {
+    "owner": 1,
+    "label": "sabesp",
+    "field_key": "",
+    "resolved_kind": "custom",
+    "inferred_type": "text",
+    "value_type": "text",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "sabesp"
+    ],
+    "match_strategy": "custom",
+    "confidence": 0.0,
+    "normalized_label": "sabesp",
+    "created_at": "2026-01-16T19:09:32.951Z"
+  }
+},
+{
+  "model": "documents.extractionkeyword",
+  "pk": 18,
+  "fields": {
+    "owner": 1,
+    "label": "bairro",
+    "field_key": "",
+    "resolved_kind": "custom",
+    "inferred_type": "text",
+    "value_type": "text",
+    "strategy": "after_label",
+    "strategy_params": {},
+    "anchors": [
+      "bairro"
+    ],
+    "match_strategy": "custom",
+    "confidence": 0.0,
+    "normalized_label": "bairro",
+    "created_at": "2026-01-16T19:09:45.032Z"
+  }
+}
+]
