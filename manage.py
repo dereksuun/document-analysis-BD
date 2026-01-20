@@ -2,7 +2,8 @@
 import os
 import sys
 
-
+ #teste
+ 
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "automacao_contas.settings")
     try:
