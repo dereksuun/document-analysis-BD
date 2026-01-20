@@ -9,7 +9,7 @@ from decimal import Decimal, InvalidOperation
 
 from pypdf import PdfReader
 
-from .extractors import FIELD_EXTRACTORS, extract_cnpj, extract_cpf
+from .extractors import FIELD_EXTRACTORS, PAYER_SCOPE_ANCHORS, extract_cnpj, extract_cpf
 from .intent_catalog import TYPE_BY_BUILTIN
 
 try:
@@ -48,6 +48,11 @@ logger = logging.getLogger(__name__)
 KEYWORD_PREFIX = "keyword:"
 CORE_FIELD_KEYS = {"due_date", "document_value", "barcode", "juros", "multa"}
 BUILTIN_FIELD_KEYS = set(TYPE_BY_BUILTIN.keys())
+
+ALIAS_FIELD_KEYS = {
+    "cnpj": "payee_cnpj",
+    "billing_address": "payer_address",
+}
 
 CUSTOM_CONTEXT_LINES = 3
 
@@ -543,6 +548,16 @@ def sanitize_payload(payload: dict) -> dict:
         if key in payload and key not in fields:
             fields[key] = payload.get(key)
 
+    legacy_map = {
+        "cnpj": "payee_cnpj",
+        "billing_address": "payer_address",
+    }
+    for legacy_key, new_key in legacy_map.items():
+        if legacy_key in fields and new_key not in fields:
+            fields[new_key] = fields.get(legacy_key)
+        if legacy_key in fields:
+            fields.pop(legacy_key, None)
+
     custom_fields: dict[str, dict] = {}
     raw_custom = payload.get("custom_fields") or {}
     if isinstance(raw_custom, dict):
@@ -701,6 +716,24 @@ def _extract_text_from_pdf(file_path: str) -> str:
         text_parts.append(page.extract_text() or "")
     return "\n".join(text_parts).strip()
 
+MIN_TEXT_CHARS = 200
+MIN_TEXT_WORDS = 30
+
+
+def _text_quality_stats(text: str) -> tuple[int, int]:
+    stripped = (text or "").strip()
+    if not stripped:
+        return 0, 0
+    word_count = len(re.findall(r"\w+", stripped))
+    char_count = len(re.sub(r"\s+", "", stripped))
+    return word_count, char_count
+
+
+def _text_is_weak(word_count: int, char_count: int) -> bool:
+    if word_count == 0 and char_count == 0:
+        return True
+    return char_count < MIN_TEXT_CHARS or word_count < MIN_TEXT_WORDS
+
 
 def _missing_ocr_deps():
     missing = []
@@ -741,20 +774,35 @@ def _extract_text_with_ocr(file_path: str) -> str:
     return text
 
 
-def extract_text_with_ocr_flag(file_path: str) -> tuple[str, bool]:
+def extract_text_with_ocr_flag(file_path: str) -> tuple[str, bool, int]:
     text = _extract_text_from_pdf(file_path)
-    if text:
-        return text, False
-    logger.info("ocr_fallback file=%s", os.path.basename(file_path))
+    word_count, char_count = _text_quality_stats(text)
+    if not _text_is_weak(word_count, char_count):
+        return text, False, word_count
+    logger.info(
+        "ocr_fallback file=%s reason=weak_text chars=%s words=%s",
+        os.path.basename(file_path),
+        char_count,
+        word_count,
+    )
     try:
-        return _extract_text_with_ocr(file_path), True
+        ocr_text = _extract_text_with_ocr(file_path)
     except Exception as exc:
+        if text.strip():
+            logger.warning(
+                "ocr_failed file=%s error=%s fallback=keep_pdf_text",
+                os.path.basename(file_path),
+                exc,
+            )
+            return text, False, word_count
         logger.warning("ocr_failed file=%s error=%s", os.path.basename(file_path), exc)
         raise ValueError(f"PDF sem texto selecionavel. OCR falhou: {exc}") from exc
+    ocr_word_count, _ = _text_quality_stats(ocr_text)
+    return ocr_text, True, ocr_word_count
 
 
 def extract_text_from_pdf(file_path: str) -> str:
-    text, _ = extract_text_with_ocr_flag(file_path)
+    text, _, _ = extract_text_with_ocr_flag(file_path)
     return text
 
 
@@ -788,7 +836,7 @@ def process_document(
     *,
     doc_id: str | None = None,
     filename: str | None = None,
-) -> dict:
+) -> tuple[dict, str, bool, int]:
     if not file_path.lower().endswith(".pdf"):
         raise ValueError("Suporta apenas PDF.")
 
@@ -798,7 +846,9 @@ def process_document(
     selected_fields = list(dict.fromkeys(selected_fields))
     keyword_map = keyword_map or {}
 
-    text, ocr_used = extract_text_with_ocr_flag(file_path)
+    text, ocr_used, text_quality = extract_text_with_ocr_flag(file_path)
+    storage_text = text
+    storage_quality = text_quality
     file_label = filename or os.path.basename(file_path)
     logger.info(
         "process_document_start doc=%s file=%s selected=%s ocr=%s",
@@ -828,6 +878,7 @@ def process_document(
                 continue
             resolved_kind = (info.get("resolved_kind") or "custom").lower()
             field_key = info.get("field_key") or ""
+            field_key = ALIAS_FIELD_KEYS.get(field_key, field_key)
             if resolved_kind == "builtin" and field_key:
                 resolved_fields.append(field_key)
                 raw_fields_by_builtin.setdefault(field_key, []).append(field)
@@ -836,8 +887,9 @@ def process_document(
                 custom_info["keyword_key"] = field
                 custom_definitions.append(custom_info)
             continue
-        resolved_fields.append(field)
-        raw_fields_by_builtin.setdefault(field, []).append(field)
+        canonical_field = ALIAS_FIELD_KEYS.get(field, field)
+        resolved_fields.append(canonical_field)
+        raw_fields_by_builtin.setdefault(canonical_field, []).append(field)
     resolved_fields = list(dict.fromkeys(resolved_fields))
 
     core = None
@@ -848,6 +900,13 @@ def process_document(
         missing_resolved_fields.append(field_key)
         raw_fields = raw_fields_by_builtin.get(field_key) or [field_key]
         missing_fields.extend(raw_fields)
+        if field_key.startswith("payer_"):
+            logger.info(
+                "extract_missing_reason field=%s reason=not_found_in_payer_block anchors=%s ocr=%s",
+                field_key,
+                list(PAYER_SCOPE_ANCHORS),
+                ocr_used,
+            )
 
     def _log_builtin_field(field_key: str, value):
         inferred_type = TYPE_BY_BUILTIN.get(field_key, "")
@@ -928,6 +987,53 @@ def process_document(
         payload["fields"][field] = value if value else None
         _log_builtin_field(field, value)
 
+    payer_missing = [field for field in missing_resolved_fields if field.startswith("payer_")]
+    if payer_missing and not ocr_used:
+        try:
+            ocr_text = _extract_text_with_ocr(file_path)
+        except Exception as exc:
+            logger.warning(
+                "ocr_on_demand_failed doc=%s file=%s fields=%s error=%s",
+                doc_id or "-",
+                file_label,
+                payer_missing,
+                exc,
+            )
+        else:
+            ocr_used = True
+            storage_text = ocr_text
+            storage_quality = _text_quality_stats(ocr_text)[0]
+            logger.info(
+                "ocr_on_demand doc=%s file=%s fields=%s",
+                doc_id or "-",
+                file_label,
+                payer_missing,
+            )
+
+            def _clear_missing(field_key: str):
+                raw_fields = raw_fields_by_builtin.get(field_key) or [field_key]
+                missing_resolved_fields[:] = [item for item in missing_resolved_fields if item != field_key]
+                missing_fields[:] = [item for item in missing_fields if item not in raw_fields]
+
+            for field in payer_missing:
+                extractor = FIELD_EXTRACTORS.get(field)
+                if not extractor:
+                    continue
+                piece = extractor(ocr_text)
+                value = piece.get(field) if piece else None
+                if value:
+                    payload["fields"][field] = value
+                    _clear_missing(field)
+                    _log_builtin_field(field, value)
+                else:
+                    logger.info(
+                        "extract_missing_reason field=%s reason=not_found_in_payer_block anchors=%s ocr=%s",
+                        field,
+                        list(PAYER_SCOPE_ANCHORS),
+                        True,
+                    )
+                    _log_builtin_field(field, None)
+
     for info in custom_definitions:
         keyword_key = info.get("keyword_key") or ""
         label = (info.get("label") or "").strip()
@@ -973,4 +1079,4 @@ def process_document(
         resolved_fields,
         ocr_used,
     )
-    return sanitize_payload(payload)
+    return sanitize_payload(payload), storage_text, ocr_used, storage_quality

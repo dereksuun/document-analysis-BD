@@ -119,6 +119,9 @@ class Document(models.Model):
 
     selected_fields = models.JSONField(default=list)
     extracted_json = models.JSONField(null=True, blank=True)
+    extracted_text = models.TextField(blank=True, default="")
+    ocr_used = models.BooleanField(default=False)
+    text_quality = models.PositiveIntegerField(null=True, blank=True)
     error_message = models.TextField(blank=True, default="")
 
     def save(self, *args, **kwargs):
@@ -129,11 +132,17 @@ class Document(models.Model):
     def mark_processing(self):
         self.status = DocumentStatus.PROCESSING
         self.processed_at = None
+        self.extracted_text = ""
+        self.ocr_used = False
+        self.text_quality = None
         self.error_message = ""
         self.extracted_json = None
 
-    def mark_done(self, data: dict):
+    def mark_done(self, data: dict, *, extracted_text: str = "", ocr_used: bool = False, text_quality: int | None = None):
         self.extracted_json = data
+        self.extracted_text = extracted_text if extracted_text is not None else ""
+        self.ocr_used = bool(ocr_used)
+        self.text_quality = text_quality
         self.status = DocumentStatus.DONE
         self.processed_at = timezone.now()
         self.error_message = ""

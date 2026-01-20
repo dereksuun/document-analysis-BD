@@ -8,6 +8,49 @@
       <h1>Documentos</h1>
     </div>
 
+    <form class="filters-bar" method="get">
+      <div class="filters-row">
+        <label class="filter-field">
+          <span>Buscar termos</span>
+          <input
+            class="input-text"
+            type="text"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="python, django, fastapi"
+          />
+        </label>
+        <label class="filter-field">
+          <span>Excluir termos</span>
+          <input
+            class="input-text"
+            type="text"
+            name="exclude"
+            value="{{ exclude_query }}"
+            placeholder="estagio, junior"
+          />
+        </label>
+        <div class="filter-toggle">
+          <span>Modo</span>
+          <div class="toggle-options">
+            <label class="toggle-option">
+              <input type="radio" name="mode" value="all" {% if mode != "any" %}checked{% endif %} />
+              <span>TODOS</span>
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="mode" value="any" {% if mode == "any" %}checked{% endif %} />
+              <span>QUALQUER</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="filters-actions">
+        <button class="btn btn-primary btn-sm" type="submit">Aplicar</button>
+        <a class="btn btn-ghost btn-sm" href="{% url 'documents_list' %}">Limpar</a>
+        <span class="results-meta">{{ result_count }} documento{{ result_count|pluralize:"s" }}</span>
+      </div>
+    </form>
+
     <div class="bulk-actions">
       <form id="bulk-form" method="post" action="{% url 'process_documents_bulk' %}" class="bulk-form">
         {% csrf_token %}
@@ -53,50 +96,8 @@
                 </div>
               </td>
               <td class="doc-info">
-                {% if d.extracted_json %}
-                  {% if d.extracted_json.fields %}
-                    {% with fields=d.extracted_json.fields %}
-                      <div class="info-list">
-                        <div class="info-row">
-                          <span class="info-label">Data de Vencimento:</span>
-                          <span class="info-value">{{ fields.due_date|default:"—" }}</span>
-                        </div>
-                        <div class="info-row">
-                          <span class="info-label">Valor do Documento:</span>
-                          <span class="info-value">{{ fields.document_value|default:"—" }}</span>
-                        </div>
-                        <div class="info-row">
-                          <span class="info-label">Codigo de Barras:</span>
-                          {% if fields.barcode %}
-                            <span class="info-value barcode-value" title="{{ fields.barcode }}">{{ fields.barcode }}</span>
-                          {% else %}
-                            <span class="info-value">—</span>
-                          {% endif %}
-                        </div>
-                      </div>
-                    {% endwith %}
-                  {% else %}
-                    <div class="info-list">
-                      <div class="info-row">
-                        <span class="info-label">Data de Vencimento:</span>
-                        <span class="info-value">{{ d.extracted_json.dates.vencimento|default:"—" }}</span>
-                      </div>
-                      <div class="info-row">
-                        <span class="info-label">Valor do Documento:</span>
-                        <span class="info-value">{{ d.extracted_json.amounts.valor_documento|default:"—" }}</span>
-                      </div>
-                      <div class="info-row">
-                        <span class="info-label">Codigo de Barras:</span>
-                        {% with ld=d.extracted_json.barcode.linha_digitavel cb=d.extracted_json.barcode.codigo_barras %}
-                          {% if ld or cb %}
-                            <span class="info-value barcode-value" title="{{ ld|default:cb }}">{{ ld|default:cb }}</span>
-                          {% else %}
-                            <span class="info-value">—</span>
-                          {% endif %}
-                        {% endwith %}
-                      </div>
-                    </div>
-                  {% endif %}
+                {% if d.search_snippet %}
+                  <div class="doc-snippet">{{ d.search_snippet }}</div>
                 {% else %}
                   <div class="info-empty">—</div>
                 {% endif %}
@@ -148,10 +149,10 @@
     <div class="pagination">
       <span>Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
       {% if page_obj.has_previous %}
-        <a class="btn btn-ghost" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+        <a class="btn btn-ghost" href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Anterior</a>
       {% endif %}
       {% if page_obj.has_next %}
-        <a class="btn btn-ghost" href="?page={{ page_obj.next_page_number }}">Proxima</a>
+        <a class="btn btn-ghost" href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Proxima</a>
       {% endif %}
     </div>
   </div>
