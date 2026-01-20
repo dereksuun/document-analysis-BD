@@ -716,6 +716,24 @@ def _extract_text_from_pdf(file_path: str) -> str:
         text_parts.append(page.extract_text() or "")
     return "\n".join(text_parts).strip()
 
+MIN_TEXT_CHARS = 200
+MIN_TEXT_WORDS = 30
+
+
+def _text_quality_stats(text: str) -> tuple[int, int]:
+    stripped = (text or "").strip()
+    if not stripped:
+        return 0, 0
+    word_count = len(re.findall(r"\w+", stripped))
+    char_count = len(re.sub(r"\s+", "", stripped))
+    return word_count, char_count
+
+
+def _text_is_weak(word_count: int, char_count: int) -> bool:
+    if word_count == 0 and char_count == 0:
+        return True
+    return char_count < MIN_TEXT_CHARS or word_count < MIN_TEXT_WORDS
+
 
 def _missing_ocr_deps():
     missing = []
@@ -756,20 +774,35 @@ def _extract_text_with_ocr(file_path: str) -> str:
     return text
 
 
-def extract_text_with_ocr_flag(file_path: str) -> tuple[str, bool]:
+def extract_text_with_ocr_flag(file_path: str) -> tuple[str, bool, int]:
     text = _extract_text_from_pdf(file_path)
-    if text:
-        return text, False
-    logger.info("ocr_fallback file=%s", os.path.basename(file_path))
+    word_count, char_count = _text_quality_stats(text)
+    if not _text_is_weak(word_count, char_count):
+        return text, False, word_count
+    logger.info(
+        "ocr_fallback file=%s reason=weak_text chars=%s words=%s",
+        os.path.basename(file_path),
+        char_count,
+        word_count,
+    )
     try:
-        return _extract_text_with_ocr(file_path), True
+        ocr_text = _extract_text_with_ocr(file_path)
     except Exception as exc:
+        if text.strip():
+            logger.warning(
+                "ocr_failed file=%s error=%s fallback=keep_pdf_text",
+                os.path.basename(file_path),
+                exc,
+            )
+            return text, False, word_count
         logger.warning("ocr_failed file=%s error=%s", os.path.basename(file_path), exc)
         raise ValueError(f"PDF sem texto selecionavel. OCR falhou: {exc}") from exc
+    ocr_word_count, _ = _text_quality_stats(ocr_text)
+    return ocr_text, True, ocr_word_count
 
 
 def extract_text_from_pdf(file_path: str) -> str:
-    text, _ = extract_text_with_ocr_flag(file_path)
+    text, _, _ = extract_text_with_ocr_flag(file_path)
     return text
 
 
@@ -803,7 +836,7 @@ def process_document(
     *,
     doc_id: str | None = None,
     filename: str | None = None,
-) -> dict:
+) -> tuple[dict, str, bool, int]:
     if not file_path.lower().endswith(".pdf"):
         raise ValueError("Suporta apenas PDF.")
 
@@ -813,7 +846,9 @@ def process_document(
     selected_fields = list(dict.fromkeys(selected_fields))
     keyword_map = keyword_map or {}
 
-    text, ocr_used = extract_text_with_ocr_flag(file_path)
+    text, ocr_used, text_quality = extract_text_with_ocr_flag(file_path)
+    storage_text = text
+    storage_quality = text_quality
     file_label = filename or os.path.basename(file_path)
     logger.info(
         "process_document_start doc=%s file=%s selected=%s ocr=%s",
@@ -966,6 +1001,8 @@ def process_document(
             )
         else:
             ocr_used = True
+            storage_text = ocr_text
+            storage_quality = _text_quality_stats(ocr_text)[0]
             logger.info(
                 "ocr_on_demand doc=%s file=%s fields=%s",
                 doc_id or "-",
@@ -1042,4 +1079,4 @@ def process_document(
         resolved_fields,
         ocr_used,
     )
-    return sanitize_payload(payload)
+    return sanitize_payload(payload), storage_text, ocr_used, storage_quality

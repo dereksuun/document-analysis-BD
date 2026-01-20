@@ -2,11 +2,13 @@ import io
 import json
 import logging
 import os
+import re
 import zipfile
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Q
 from django.http import FileResponse, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import get_valid_filename
@@ -27,8 +29,45 @@ from .services import KEYWORD_PREFIX, process_document, sanitize_payload
 
 PAGE_SIZE = 10
 MAX_BULK = 25
+SEARCH_SNIPPET_LEN = 120
+
+TERM_SPLIT_RE = re.compile(r"[,\s]+")
 
 logger = logging.getLogger(__name__)
+
+
+def _split_terms(raw: str) -> list[str]:
+    if not raw:
+        return []
+    parts = [term.strip() for term in TERM_SPLIT_RE.split(raw) if term.strip()]
+    return list(dict.fromkeys(parts))
+
+
+def _build_snippet(text: str, terms: list[str], max_len: int = SEARCH_SNIPPET_LEN) -> str:
+    if not text or not terms:
+        return ""
+    normalized = " ".join(text.split())
+    lowered = normalized.lower()
+    match_index = None
+    match_term = ""
+    for term in terms:
+        idx = lowered.find(term.lower())
+        if idx == -1:
+            continue
+        if match_index is None or idx < match_index:
+            match_index = idx
+            match_term = term
+    if match_index is None:
+        return ""
+    radius = max_len // 2
+    start = max(0, match_index - radius)
+    end = min(len(normalized), match_index + len(match_term) + radius)
+    snippet = normalized[start:end].strip()
+    if start > 0:
+        snippet = "..." + snippet
+    if end < len(normalized):
+        snippet = snippet + "..."
+    return snippet
 
 
 def _build_field_choices(user):
@@ -115,10 +154,31 @@ def upload_documents(request):
             for doc in created_docs:
                 logger.info("process_start doc=%s file=%s action=auto", doc.id, doc.original_filename)
                 doc.mark_processing()
-                doc.save(update_fields=["status", "processed_at", "error_message", "extracted_json"])
+                doc.save(
+                    update_fields=[
+                        "status",
+                        "processed_at",
+                        "error_message",
+                        "extracted_json",
+                        "extracted_text",
+                        "ocr_used",
+                        "text_quality",
+                    ]
+                )
                 try:
-                    data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map, doc_id=str(doc.id), filename=doc.original_filename)
-                    doc.mark_done(data)
+                    data, extracted_text, ocr_used, text_quality = process_document(
+                        doc.file.path,
+                        doc.selected_fields or [],
+                        keyword_map=keyword_map,
+                        doc_id=str(doc.id),
+                        filename=doc.original_filename,
+                    )
+                    doc.mark_done(
+                        data,
+                        extracted_text=extracted_text,
+                        ocr_used=ocr_used,
+                        text_quality=text_quality,
+                    )
                     doc.save()
                     logger.info("process_done doc=%s file=%s action=auto", doc.id, doc.original_filename)
                 except Exception as exc:
@@ -138,13 +198,64 @@ def upload_documents(request):
 
 @login_required
 def documents_list(request):
-    docs = (
-        Document.objects.filter(owner=request.user)
-        .order_by("-uploaded_at")
-    )
+    search_query = request.GET.get("q", "").strip()
+    exclude_query = request.GET.get("exclude", "").strip()
+    mode = (request.GET.get("mode", "all") or "all").lower()
+    if mode not in {"all", "any"}:
+        mode = "all"
+
+    search_terms = _split_terms(search_query)
+    exclude_terms = _split_terms(exclude_query)
+
+    docs = Document.objects.filter(owner=request.user)
+    if search_terms:
+        if mode == "any":
+            query = Q()
+            for term in search_terms:
+                query |= Q(extracted_text__icontains=term)
+            docs = docs.filter(query)
+        else:
+            for term in search_terms:
+                docs = docs.filter(extracted_text__icontains=term)
+
+    if exclude_terms:
+        for term in exclude_terms:
+            docs = docs.exclude(extracted_text__icontains=term)
+
+    docs = docs.order_by("-uploaded_at")
     paginator = Paginator(docs, PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get("page"))
-    return render(request, "documents/list.html", {"page_obj": page_obj})
+    result_count = paginator.count
+
+    if search_terms or exclude_terms:
+        logger.info(
+            "documents_search user=%s q=%s mode=%s exclude=%s results=%s",
+            request.user.id,
+            search_query,
+            mode,
+            exclude_query,
+            result_count,
+        )
+
+    for doc in page_obj:
+        doc.search_snippet = _build_snippet(doc.extracted_text or "", search_terms)
+
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+    querystring = query_params.urlencode()
+
+    return render(
+        request,
+        "documents/list.html",
+        {
+            "page_obj": page_obj,
+            "search_query": search_query,
+            "exclude_query": exclude_query,
+            "mode": mode,
+            "result_count": result_count,
+            "querystring": querystring,
+        },
+    )
 
 
 @login_required
@@ -323,12 +434,33 @@ def process_document_view(request, doc_id):
     action = "reprocess" if allow_reprocess else "process"
     logger.info("process_start doc=%s file=%s action=%s", doc.id, doc.original_filename, action)
     doc.mark_processing()
-    doc.save(update_fields=["status", "processed_at", "error_message", "extracted_json"])
+    doc.save(
+        update_fields=[
+            "status",
+            "processed_at",
+            "error_message",
+            "extracted_json",
+            "extracted_text",
+            "ocr_used",
+            "text_quality",
+        ]
+    )
 
     try:
         keyword_map = _get_keyword_map(request.user, doc.selected_fields or [])
-        data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map, doc_id=str(doc.id), filename=doc.original_filename)
-        doc.mark_done(data)
+        data, extracted_text, ocr_used, text_quality = process_document(
+            doc.file.path,
+            doc.selected_fields or [],
+            keyword_map=keyword_map,
+            doc_id=str(doc.id),
+            filename=doc.original_filename,
+        )
+        doc.mark_done(
+            data,
+            extracted_text=extracted_text,
+            ocr_used=ocr_used,
+            text_quality=text_quality,
+        )
         doc.save()
         logger.info("process_done doc=%s file=%s action=%s", doc.id, doc.original_filename, action)
     except Exception as exc:
@@ -368,10 +500,31 @@ def process_documents_bulk(request):
 
     for doc in docs:
         doc.mark_processing()
-        doc.save(update_fields=["status", "processed_at", "error_message", "extracted_json"])
+        doc.save(
+            update_fields=[
+                "status",
+                "processed_at",
+                "error_message",
+                "extracted_json",
+                "extracted_text",
+                "ocr_used",
+                "text_quality",
+            ]
+        )
         try:
-            data = process_document(doc.file.path, doc.selected_fields or [], keyword_map=keyword_map, doc_id=str(doc.id), filename=doc.original_filename)
-            doc.mark_done(data)
+            data, extracted_text, ocr_used, text_quality = process_document(
+                doc.file.path,
+                doc.selected_fields or [],
+                keyword_map=keyword_map,
+                doc_id=str(doc.id),
+                filename=doc.original_filename,
+            )
+            doc.mark_done(
+                data,
+                extracted_text=extracted_text,
+                ocr_used=ocr_used,
+                text_quality=text_quality,
+            )
             doc.save()
             logger.info("process_done doc=%s file=%s", doc.id, doc.original_filename)
         except Exception as exc:
