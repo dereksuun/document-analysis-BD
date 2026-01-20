@@ -96,6 +96,8 @@ CUSTOM_STOP_PHRASES = (
     "cnpj",
 )
 
+OCR_TESSERACT_CONFIG = "--psm 6"
+
 
 def _normalize_for_match(value: str) -> str:
     normalized = unicodedata.normalize("NFKD", value or "")
@@ -765,16 +767,24 @@ def _extract_text_with_ocr(file_path: str) -> str:
     text_parts = []
     for image in images:
         if lang:
-            text_parts.append(pytesseract.image_to_string(image, lang=lang) or "")
+            text_parts.append(
+                pytesseract.image_to_string(image, lang=lang, config=OCR_TESSERACT_CONFIG) or ""
+            )
         else:
-            text_parts.append(pytesseract.image_to_string(image) or "")
+            text_parts.append(pytesseract.image_to_string(image, config=OCR_TESSERACT_CONFIG) or "")
     text = "\n".join(text_parts).strip()
     if not text:
         raise ValueError("OCR nao conseguiu extrair texto.")
     return text
 
 
-def extract_text_with_ocr_flag(file_path: str) -> tuple[str, bool, int]:
+def extract_text_with_ocr_flag(file_path: str, *, force_ocr: bool = False) -> tuple[str, bool, int]:
+    if force_ocr:
+        logger.info("ocr_forced file=%s", os.path.basename(file_path))
+        ocr_text = _extract_text_with_ocr(file_path)
+        ocr_word_count, _ = _text_quality_stats(ocr_text)
+        return ocr_text, True, ocr_word_count
+
     extraction_error = None
     try:
         text = _extract_text_from_pdf(file_path)
@@ -851,6 +861,7 @@ def process_document(
     *,
     doc_id: str | None = None,
     filename: str | None = None,
+    force_ocr: bool = False,
 ) -> tuple[dict, str, bool, int]:
     if not file_path.lower().endswith(".pdf"):
         raise ValueError("Suporta apenas PDF.")
@@ -861,16 +872,17 @@ def process_document(
     selected_fields = list(dict.fromkeys(selected_fields))
     keyword_map = keyword_map or {}
 
-    text, ocr_used, text_quality = extract_text_with_ocr_flag(file_path)
+    text, ocr_used, text_quality = extract_text_with_ocr_flag(file_path, force_ocr=force_ocr)
     storage_text = text
     storage_quality = text_quality
     file_label = filename or os.path.basename(file_path)
     logger.info(
-        "process_document_start doc=%s file=%s selected=%s ocr=%s",
+        "process_document_start doc=%s file=%s selected=%s ocr=%s force_ocr=%s",
         doc_id or "-",
         file_label,
         selected_fields,
         ocr_used,
+        force_ocr,
     )
 
     payload = {

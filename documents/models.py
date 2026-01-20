@@ -120,6 +120,7 @@ class Document(models.Model):
     selected_fields = models.JSONField(default=list)
     extracted_json = models.JSONField(null=True, blank=True)
     extracted_text = models.TextField(blank=True, default="")
+    extracted_text_normalized = models.TextField(blank=True, default="")
     ocr_used = models.BooleanField(default=False)
     text_quality = models.PositiveIntegerField(null=True, blank=True)
     error_message = models.TextField(blank=True, default="")
@@ -133,6 +134,7 @@ class Document(models.Model):
         self.status = DocumentStatus.PROCESSING
         self.processed_at = None
         self.extracted_text = ""
+        self.extracted_text_normalized = ""
         self.ocr_used = False
         self.text_quality = None
         self.error_message = ""

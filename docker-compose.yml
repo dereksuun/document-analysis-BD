@@ -23,7 +23,7 @@ services:
       DATABASE_URL: postgres://automacao:automacao@db:5432/automacao_contas
       ALLOWED_HOSTS: "*"
       CSRF_TRUSTED_ORIGINS: "http://localhost:8000,http://127.0.0.1:8000"
-      # OCR_LANG: "por"
+      OCR_LANG: "por"
     volumes:
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles

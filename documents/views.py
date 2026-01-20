@@ -25,7 +25,7 @@ from .models import (
     VALUE_TYPE_CHOICES,
     _normalize_keyword,
 )
-from .services import KEYWORD_PREFIX, process_document, sanitize_payload
+from .services import KEYWORD_PREFIX, _normalize_for_match, process_document, sanitize_payload
 
 PAGE_SIZE = 10
 MAX_BULK = 25
@@ -39,19 +39,30 @@ logger = logging.getLogger(__name__)
 def _split_terms(raw: str) -> list[str]:
     if not raw:
         return []
-    parts = [term.strip() for term in TERM_SPLIT_RE.split(raw) if term.strip()]
-    return list(dict.fromkeys(parts))
+    if ";" in raw:
+        parts = [term.strip() for term in raw.split(";") if term.strip()]
+    else:
+        parts = [term.strip() for term in TERM_SPLIT_RE.split(raw) if term.strip()]
+    normalized_terms = []
+    seen = set()
+    for term in parts:
+        normalized = _normalize_for_match(term)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        normalized_terms.append(normalized)
+    return normalized_terms
 
 
 def _build_snippet(text: str, terms: list[str], max_len: int = SEARCH_SNIPPET_LEN) -> str:
     if not text or not terms:
         return ""
     normalized = " ".join(text.split())
-    lowered = normalized.lower()
+    lowered = _normalize_for_match(normalized)
     match_index = None
     match_term = ""
     for term in terms:
-        idx = lowered.find(term.lower())
+        idx = lowered.find(term)
         if idx == -1:
             continue
         if match_index is None or idx < match_index:
@@ -121,6 +132,10 @@ def _get_profile(user):
     return profile
 
 
+def _get_force_ocr(request) -> bool:
+    return request.POST.get("force_ocr") == "1" or request.GET.get("force_ocr") == "1"
+
+
 @login_required
 def upload_documents(request):
     if request.method == "POST":
@@ -161,6 +176,7 @@ def upload_documents(request):
                         "error_message",
                         "extracted_json",
                         "extracted_text",
+                        "extracted_text_normalized",
                         "ocr_used",
                         "text_quality",
                     ]
@@ -173,6 +189,7 @@ def upload_documents(request):
                         doc_id=str(doc.id),
                         filename=doc.original_filename,
                     )
+                    doc.extracted_text_normalized = _normalize_for_match(extracted_text or "")
                     doc.mark_done(
                         data,
                         extracted_text=extracted_text,
@@ -212,15 +229,15 @@ def documents_list(request):
         if mode == "any":
             query = Q()
             for term in search_terms:
-                query |= Q(extracted_text__icontains=term)
+                query |= Q(extracted_text_normalized__icontains=term)
             docs = docs.filter(query)
         else:
             for term in search_terms:
-                docs = docs.filter(extracted_text__icontains=term)
+                docs = docs.filter(extracted_text_normalized__icontains=term)
 
     if exclude_terms:
         for term in exclude_terms:
-            docs = docs.exclude(extracted_text__icontains=term)
+            docs = docs.exclude(extracted_text_normalized__icontains=term)
 
     docs = docs.order_by("-uploaded_at")
     paginator = Paginator(docs, PAGE_SIZE)
@@ -432,7 +449,14 @@ def process_document_view(request, doc_id):
         return redirect("documents_list")
 
     action = "reprocess" if allow_reprocess else "process"
-    logger.info("process_start doc=%s file=%s action=%s", doc.id, doc.original_filename, action)
+    force_ocr = _get_force_ocr(request)
+    logger.info(
+        "process_start doc=%s file=%s action=%s force_ocr=%s",
+        doc.id,
+        doc.original_filename,
+        action,
+        force_ocr,
+    )
     doc.mark_processing()
     doc.save(
         update_fields=[
@@ -441,6 +465,7 @@ def process_document_view(request, doc_id):
             "error_message",
             "extracted_json",
             "extracted_text",
+            "extracted_text_normalized",
             "ocr_used",
             "text_quality",
         ]
@@ -454,7 +479,9 @@ def process_document_view(request, doc_id):
             keyword_map=keyword_map,
             doc_id=str(doc.id),
             filename=doc.original_filename,
+            force_ocr=force_ocr,
         )
+        doc.extracted_text_normalized = _normalize_for_match(extracted_text or "")
         doc.mark_done(
             data,
             extracted_text=extracted_text,
@@ -492,7 +519,14 @@ def process_documents_bulk(request):
         qs = qs.exclude(status=DocumentStatus.DONE)
 
     docs = list(qs)
-    logger.info("bulk_process_start user=%s action=%s count=%s", request.user.id, action, len(docs))
+    force_ocr = _get_force_ocr(request)
+    logger.info(
+        "bulk_process_start user=%s action=%s count=%s force_ocr=%s",
+        request.user.id,
+        action,
+        len(docs),
+        force_ocr,
+    )
     keyword_fields = []
     for doc in docs:
         keyword_fields.extend(doc.selected_fields or [])
@@ -507,6 +541,7 @@ def process_documents_bulk(request):
                 "error_message",
                 "extracted_json",
                 "extracted_text",
+                "extracted_text_normalized",
                 "ocr_used",
                 "text_quality",
             ]
@@ -518,7 +553,9 @@ def process_documents_bulk(request):
                 keyword_map=keyword_map,
                 doc_id=str(doc.id),
                 filename=doc.original_filename,
+                force_ocr=force_ocr,
             )
+            doc.extracted_text_normalized = _normalize_for_match(extracted_text or "")
             doc.mark_done(
                 data,
                 extracted_text=extracted_text,
@@ -541,6 +578,29 @@ def download_document(request, doc_id):
     doc = get_object_or_404(Document, id=doc_id, owner=request.user)
     filename = doc.original_filename or os.path.basename(doc.file.name)
     return FileResponse(doc.file.open("rb"), as_attachment=True, filename=filename)
+
+
+def _safe_name(filename: str, fallback: str) -> str:
+    base_name = os.path.basename(filename or "").strip()
+    if not base_name:
+        base_name = fallback
+    safe_name = get_valid_filename(base_name)
+    return safe_name or fallback
+
+
+def _unique_name(filename: str, used_names: set[str], token: str) -> str:
+    if filename not in used_names:
+        used_names.add(filename)
+        return filename
+    base, ext = os.path.splitext(filename)
+    candidate = f"{base}-{token}{ext}"
+    if candidate in used_names:
+        counter = 2
+        while f"{base}-{token}-{counter}{ext}" in used_names:
+            counter += 1
+        candidate = f"{base}-{token}-{counter}{ext}"
+    used_names.add(candidate)
+    return candidate
 
 
 def _build_json_filename(doc):
@@ -600,6 +660,59 @@ def download_documents_json_bulk(request):
     response = HttpResponse(buffer.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = 'attachment; filename="documentos-json.zip"'
     logger.info("bulk_json_download user=%s count=%s", request.user.id, added)
+    return response
+
+
+@login_required
+def download_documents_files_bulk(request):
+    if request.method != "POST":
+        return HttpResponseForbidden("Método inválido.")
+
+    ids = request.POST.getlist("ids")
+    if not ids:
+        return redirect("documents_list")
+
+    docs = list(
+        Document.objects.filter(owner=request.user, id__in=ids)
+        .order_by("-uploaded_at")
+    )
+
+    buffer = io.BytesIO()
+    used_names = set()
+    added = 0
+    missing = 0
+
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as zip_file:
+        for doc in docs:
+            if not doc.file:
+                missing += 1
+                continue
+            try:
+                file_path = doc.file.path
+            except Exception:
+                missing += 1
+                continue
+            if not os.path.exists(file_path):
+                missing += 1
+                continue
+            original_name = doc.original_filename or os.path.basename(doc.file.name) or str(doc.id)
+            safe_name = _safe_name(original_name, str(doc.id))
+            filename = _unique_name(safe_name, used_names, str(doc.id)[:8])
+            zip_file.write(file_path, arcname=filename)
+            added += 1
+
+    if added == 0:
+        return HttpResponse("Nenhum arquivo disponivel para download.", status=400)
+
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = 'attachment; filename="documentos-arquivos.zip"'
+    logger.info(
+        "bulk_files_download user=%s count=%s missing=%s",
+        request.user.id,
+        added,
+        missing,
+    )
     return response
 
 

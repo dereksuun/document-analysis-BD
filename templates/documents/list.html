@@ -56,6 +56,7 @@
         {% csrf_token %}
         <button class="btn btn-secondary btn-sm" name="action" value="reprocess" type="submit">Reprocessar selecionados</button>
         <button class="btn btn-ghost btn-sm" type="submit" formaction="{% url 'download_documents_json_bulk' %}">Download JSON selecionados</button>
+        <button class="btn btn-ghost btn-sm" type="submit" formaction="{% url 'download_documents_files_bulk' %}">Download arquivos selecionados</button>
       </form>
       <button class="btn btn-ghost btn-sm" type="button" id="select-all">Selecionar todos</button>
     </div>

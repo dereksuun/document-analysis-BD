@@ -11,6 +11,7 @@ urlpatterns = [
     path("process/<uuid:doc_id>/", views.process_document_view, name="process_document"),
     path("process/bulk/", views.process_documents_bulk, name="process_documents_bulk"),
     path("download/<uuid:doc_id>/", views.download_document, name="download_document"),
+    path("download/bulk/files/", views.download_documents_files_bulk, name="download_documents_files_bulk"),
     path("json/<uuid:doc_id>/", views.document_json_view, name="document_json"),
     path("json/<uuid:doc_id>/download/", views.download_document_json, name="document_json_download"),
     path("json/bulk/", views.download_documents_json_bulk, name="download_documents_json_bulk"),
