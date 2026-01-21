@@ -155,7 +155,6 @@ class FilterPresetForm(forms.ModelForm):
             "name",
             "keywords_mode",
             "experience_min_years",
-            "experience_max_years",
             "age_min_years",
             "age_max_years",
         ]
@@ -163,7 +162,6 @@ class FilterPresetForm(forms.ModelForm):
             "name": forms.TextInput(attrs={"class": "input-text"}),
             "keywords_mode": forms.Select(attrs={"class": "input-select"}),
             "experience_min_years": forms.NumberInput(attrs={"class": "input-text", "min": 0}),
-            "experience_max_years": forms.NumberInput(attrs={"class": "input-text", "min": 0}),
             "age_min_years": forms.NumberInput(attrs={"class": "input-text", "min": 0}),
             "age_max_years": forms.NumberInput(attrs={"class": "input-text", "min": 0}),
         }
@@ -176,9 +174,6 @@ class FilterPresetForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         exp_min = cleaned.get("experience_min_years")
-        exp_max = cleaned.get("experience_max_years")
-        if exp_min is not None and exp_max is not None and exp_min > exp_max:
-            self.add_error("experience_max_years", "Maximo deve ser maior ou igual ao minimo.")
         age_min = cleaned.get("age_min_years")
         age_max = cleaned.get("age_max_years")
         if age_min is not None and age_max is not None and age_min > age_max:
@@ -189,6 +184,7 @@ class FilterPresetForm(forms.ModelForm):
         instance = super().save(commit=False)
         raw = self.cleaned_data.get("keywords_text") or ""
         instance.keywords = _split_keywords(raw)
+        instance.experience_max_years = None
         if commit:
             instance.save()
         return instance

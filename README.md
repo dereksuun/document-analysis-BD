@@ -5,7 +5,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-DB-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-A **Django** MVP for **multi-file upload**, **OCR + text extraction**, **per-document (and batch) processing**, **JSON results storage**, **protected download**, and **search/filter by keywords**.
+A **Django** MVP for **multi-file upload**, **OCR + text extraction**, **per-document (and batch) processing**, **JSON results storage**, **protected download**, and **search/filter by keywords and presets**.
 
 > ✅ Current focus: a **navigable document database** (e.g., HR uploads 50 resumes and filters by keywords).  
 > 🔜 Next: stronger extraction rules, better classification, and production hardening.
@@ -31,7 +31,10 @@ Este sistema permite:
 - Resultado é salvo em um **JSON limpo** (apenas dados extraídos)
 - Debug fica no **log**, com eventos estruturados por documento/campo
 - Download dos arquivos é **protegido por login**
-- Filtro/busca por **palavras-chave** na listagem
+- Busca **sem acento** por palavras-chave e frases (`;`)
+- Presets de filtro por **palavras-chave, idade, experiencia**
+- Download em massa de **JSON** e dos **arquivos originais**
+- Contato (telefone) extraido para link do WhatsApp
 
 ---
 
@@ -61,7 +64,7 @@ Este sistema permite:
 
 ## Começando rápido (Docker + Postgres + OCR)
 
-### 1) Criar `.env`
+### 1) Criar `.env` (opcional)
 
 Crie um arquivo `.env` na raiz do projeto:
 
@@ -69,13 +72,16 @@ Crie um arquivo `.env` na raiz do projeto:
 DEBUG=1
 SECRET_KEY=change-me
 ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
 
 # Postgres (docker compose)
-DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
+DATABASE_URL=postgres://automacao:automacao@db:5432/automacao_contas
 
 # OCR (opcional)
 OCR_LANG=por
 ```
+
+> No Docker Compose, essas variaveis ja estao no `docker-compose.yml`. Use o `.env` para sobrescrever.
 
 > Se `ALLOWED_HOSTS` estiver bloqueando acesso na rede local, adicione o IP da máquina (ex: `192.168.0.10`) e/ou `0.0.0.0`.
 
@@ -87,17 +93,24 @@ OCR_LANG=por
 docker compose up -d --build
 ```
 
-### 3) Criar superusuário
+### 3) Aplicar migrações
+
+```bash
+docker compose exec web python manage.py migrate
+```
+
+### 4) Criar superusuário
 
 ```bash
 docker compose exec web python manage.py createsuperuser
 ```
 
-### 4) Acessar
+### 5) Acessar
 
 - Login: http://127.0.0.1:8000/login/
 - Lista: http://127.0.0.1:8000/documents/
 - Upload: http://127.0.0.1:8000/documents/upload/
+- Presets: http://127.0.0.1:8000/documents/presets/
 
 ---
 
@@ -165,6 +178,18 @@ O OCR é acionado quando o PDF não tem texto “selecionável”.
 **Variável opcional:**
 - `OCR_LANG=por` (se o pacote do idioma estiver instalado no Tesseract)
 
+**Forcar OCR (opcional):**
+- Envie `force_ocr=1` em reprocessamento/processing para ignorar texto embutido.
+
+---
+
+## Busca e Presets
+
+- Busca normalizada: sem acento, lowercase e espacos colapsados.
+- Frases: use `;` para separar termos (ex: `gerente geral;compras`).
+- Presets aplicam palavras-chave + faixas de idade/experiencia.
+- Idade/experiencia/contato so aparecem depois do processamento; documentos antigos podem precisar reprocessar.
+
 ---
 
 ## Como funciona (fluxo do usuário)
@@ -172,9 +197,10 @@ O OCR é acionado quando o PDF não tem texto “selecionável”.
 1. Login
 2. Upload de PDFs
 3. Processar documento (ou lote, se habilitado)
-4. Visualizar JSON extraído
-5. Filtrar/buscar por palavras-chave na listagem
-6. Fazer download do documento por linha
+4. (Opcional) Criar presets e aplicar filtros
+5. Visualizar JSON extraído
+6. Filtrar/buscar por palavras-chave na listagem
+7. Fazer download individual ou em massa
 
 ---
 
@@ -267,7 +293,9 @@ This system provides:
 - Results are stored as a **clean JSON** (only extracted fields)
 - Debug/telemetry lives in **structured logs**
 - File download is **login-protected**
-- List page supports **keyword search/filter**
+- List page supports **accent-insensitive search**, **phrase terms**, and **presets**
+- Presets can filter by **keywords, age, experience**
+- Bulk download of **JSON** and **original files**
 
 ---
 
@@ -297,7 +325,7 @@ This system provides:
 
 ## Quickstart (Docker + Postgres + OCR)
 
-### 1) Create a `.env`
+### 1) Create a `.env` (optional)
 
 Create a `.env` file at the project root:
 
@@ -305,13 +333,16 @@ Create a `.env` file at the project root:
 DEBUG=1
 SECRET_KEY=change-me
 ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
 
 # Postgres (docker compose)
-DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
+DATABASE_URL=postgres://automacao:automacao@db:5432/automacao_contas
 
 # OCR (optional)
 OCR_LANG=por
 ```
+
+> Docker Compose already sets these env vars in `docker-compose.yml`. Use `.env` to override.
 
 > For LAN access, add your machine IP (e.g., `192.168.0.10`) and/or `0.0.0.0` to `ALLOWED_HOSTS`.
 
@@ -321,17 +352,24 @@ OCR_LANG=por
 docker compose up -d --build
 ```
 
-### 3) Create a superuser
+### 3) Run migrations
+
+```bash
+docker compose exec web python manage.py migrate
+```
+
+### 4) Create a superuser
 
 ```bash
 docker compose exec web python manage.py createsuperuser
 ```
 
-### 4) Open
+### 5) Open
 
 - Login: http://127.0.0.1:8000/login/
 - Documents list: http://127.0.0.1:8000/documents/
 - Upload: http://127.0.0.1:8000/documents/upload/
+- Presets: http://127.0.0.1:8000/documents/presets/
 
 ---
 
@@ -396,6 +434,18 @@ OCR is used when PDFs have no selectable text.
 
 **Optional:**
 - `OCR_LANG=por` (if language pack is installed)
+
+**Force OCR (optional):**
+- Send `force_ocr=1` on processing/reprocessing to ignore embedded PDF text.
+
+---
+
+## Search and presets
+
+- Normalized search: lowercase, no accents, collapsed spaces.
+- Phrases: use `;` to separate terms (e.g., `gerente geral;compras`).
+- Presets apply keywords + age/experience ranges.
+- Age/experience/contact are filled during processing; older docs may need reprocessing.
 
 ---
 

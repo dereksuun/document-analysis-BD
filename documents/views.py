@@ -86,8 +86,6 @@ def _apply_preset_filters(queryset, preset: FilterPreset):
     queryset = _apply_term_filters(queryset, keywords, mode=mode)
     if preset.experience_min_years is not None:
         queryset = queryset.filter(extracted_experience_years__gte=preset.experience_min_years)
-    if preset.experience_max_years is not None:
-        queryset = queryset.filter(extracted_experience_years__lte=preset.experience_max_years)
     if preset.age_min_years is not None:
         queryset = queryset.filter(extracted_age_years__gte=preset.age_min_years)
     if preset.age_max_years is not None:

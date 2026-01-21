@@ -32,13 +32,6 @@
           {{ form.experience_min_years }}
         </label>
         <label class="filter-field">
-          <span>Experiencia maximo (anos)</span>
-          {{ form.experience_max_years }}
-          {% if form.experience_max_years.errors %}
-            <p class="error-hint">{{ form.experience_max_years.errors|striptags }}</p>
-          {% endif %}
-        </label>
-        <label class="filter-field">
           <span>Idade minima (anos)</span>
           {{ form.age_min_years }}
         </label>
@@ -79,8 +72,8 @@
                   {% if item.keywords %}
                     · Termos: {{ item.keywords|join:"; " }}
                   {% endif %}
-                  {% if item.experience_min_years is not None or item.experience_max_years is not None %}
-                    · Experiencia: {{ item.experience_min_years|default_if_none:"?" }}–{{ item.experience_max_years|default_if_none:"?" }} anos
+                  {% if item.experience_min_years is not None %}
+                    · Experiencia: {{ item.experience_min_years }}+ anos
                   {% endif %}
                   {% if item.age_min_years is not None or item.age_max_years is not None %}
                     · Idade: {{ item.age_min_years|default_if_none:"?" }}–{{ item.age_max_years|default_if_none:"?" }} anos
