@@ -5,9 +5,16 @@ import re
 import zipfile
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.conf import settings
 from django.utils.text import get_valid_filename
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -407,6 +414,74 @@ class LogoutView(APIView):
         return Response({"ok": True})
 
 
+class PasswordResetRequestView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = (request.data.get("username") or "").strip()
+        if not username:
+            return Response({"ok": True})
+
+        ip = request.META.get("REMOTE_ADDR", "")
+        cache_key = f"pwdreset:{username}:{ip}"
+        if cache.get(cache_key):
+            return Response({"ok": True})
+        cache.set(cache_key, True, timeout=60)
+
+        user = User.objects.filter(username__iexact=username, is_active=True).first()
+        if user and user.email:
+            token = PasswordResetTokenGenerator().make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            base_url = getattr(settings, "FRONTEND_PUBLIC_URL", "http://localhost:5173").rstrip("/")
+            reset_link = f"{base_url}/reset-password?uid={uid}&token={token}"
+            subject = "Redefinicao de senha"
+            body = (
+                "Recebemos um pedido para redefinir sua senha.\n\n"
+                f"Use este link para criar uma nova senha (expira em breve):\n{reset_link}\n\n"
+                "Se voce nao solicitou, ignore este e-mail."
+            )
+            send_mail(
+                subject,
+                body,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=True,
+            )
+        return Response({"ok": True})
+
+
+class PasswordResetConfirmView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        uid = (request.data.get("uid") or "").strip()
+        token = (request.data.get("token") or "").strip()
+        new_password = request.data.get("new_password") or ""
+
+        if not uid or not token or not new_password:
+            raise ValidationError({"detail": "uid, token e new_password sao obrigatorios."})
+
+        try:
+            user_id = urlsafe_base64_decode(uid).decode()
+        except Exception as exc:
+            raise ValidationError({"detail": "uid invalido."}) from exc
+
+        user = User.objects.filter(pk=user_id, is_active=True).first()
+        if not user:
+            raise ValidationError({"detail": "token invalido."})
+
+        token_ok = PasswordResetTokenGenerator().check_token(user, token)
+        if not token_ok:
+            raise ValidationError({"detail": "token invalido."})
+
+        validate_password(new_password, user=user)
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        return Response({"ok": True})
+
+
 class ExtractionSettingsView(APIView):
     permission_classes = [IsAuthenticatedOrOptions]
 
@@ -686,6 +761,11 @@ class AdminUserSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "sector", "is_staff", "is_superuser"]
 
+    def validate_email(self, value):
+        if not value:
+            raise serializers.ValidationError("email is required.")
+        return value
+
     def get_sector(self, obj):
         sector = get_user_sector(obj)
         if not sector:
@@ -861,7 +941,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
 
     def get_queryset(self):
         sector = _require_user_sector(self.request.user)
-        return Document.objects.filter(owner=self.request.user, sector=sector)
+        return Document.objects.filter(sector=sector)
 
     def _apply_filters(self, qs):
         user = self.request.user
@@ -1035,7 +1115,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
 
         sector = _require_user_sector(request.user)
         docs = list(
-            Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
+            Document.objects.filter(sector=sector, id__in=ids)
             .exclude(status=DocumentStatus.PROCESSING)
         )
 
@@ -1078,7 +1158,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
         ids = list(dict.fromkeys(ids))[:MAX_BULK]
         sector = _require_user_sector(request.user)
         docs = list(
-            Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
+            Document.objects.filter(sector=sector, id__in=ids)
             .order_by("-uploaded_at")
         )
 
@@ -1117,7 +1197,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
         ids = list(dict.fromkeys(ids))[:MAX_BULK]
         sector = _require_user_sector(request.user)
         docs = list(
-            Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
+            Document.objects.filter(sector=sector, id__in=ids)
             .order_by("-uploaded_at")
         )
 

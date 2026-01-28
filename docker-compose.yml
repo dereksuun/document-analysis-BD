@@ -20,6 +20,8 @@ services:
 
   web:
     build: .
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
@@ -43,6 +45,8 @@ services:
 
   worker:
     build: .
+    env_file:
+      - .env
     command: celery -A automacao_contas worker -l INFO --concurrency=1
     depends_on:
       db:

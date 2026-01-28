@@ -285,7 +285,7 @@ def documents_list(request):
         or mode == "any"
     )
 
-    base_docs = Document.objects.filter(owner=request.user, sector=sector)
+    base_docs = Document.objects.filter(sector=sector)
     processing_count = base_docs.filter(status=DocumentStatus.PROCESSING).count()
     docs = base_docs
     presets = list(FilterPreset.objects.filter(owner=request.user).order_by("name"))
@@ -639,6 +639,8 @@ def admin_panel(request):
                 role = "member"
             if not username:
                 error = "Informe o usuario."
+            elif not email:
+                error = "Informe o e-mail."
             elif User.objects.filter(username__iexact=username).exists():
                 error = "Ja existe um usuario com esse nome."
             elif not password:
@@ -862,7 +864,7 @@ def process_document_view(request, doc_id):
         return HttpResponseForbidden("Método inválido.")
 
     sector = _require_user_sector(request.user)
-    doc = get_object_or_404(Document, id=doc_id, owner=request.user, sector=sector)
+    doc = get_object_or_404(Document, id=doc_id, sector=sector)
     allow_reprocess = request.POST.get("reprocess") == "1"
 
     if doc.status == DocumentStatus.PROCESSING:
@@ -904,7 +906,7 @@ def process_documents_bulk(request):
     ids = ids[:MAX_BULK]
 
     sector = _require_user_sector(request.user)
-    qs = Document.objects.filter(owner=request.user, sector=sector, id__in=ids).exclude(
+    qs = Document.objects.filter(sector=sector, id__in=ids).exclude(
         status=DocumentStatus.PROCESSING
     )
     if action != "reprocess":
@@ -936,7 +938,7 @@ def process_documents_bulk(request):
 @login_required
 def download_document(request, doc_id):
     sector = _require_user_sector(request.user)
-    doc = get_object_or_404(Document, id=doc_id, owner=request.user, sector=sector)
+    doc = get_object_or_404(Document, id=doc_id, sector=sector)
     filename = doc.original_filename or os.path.basename(doc.file.name)
     return FileResponse(doc.file.open("rb"), as_attachment=True, filename=filename)
 
@@ -987,7 +989,7 @@ def _build_json_filename(doc):
 @login_required
 def download_document_json(request, doc_id):
     sector = _require_user_sector(request.user)
-    doc = get_object_or_404(Document, id=doc_id, owner=request.user, sector=sector)
+    doc = get_object_or_404(Document, id=doc_id, sector=sector)
     json_data = sanitize_payload(doc.extracted_json or {})
     payload = json.dumps(json_data, ensure_ascii=False, indent=2)
     filename = _build_json_filename(doc)
@@ -1007,7 +1009,7 @@ def download_documents_json_bulk(request):
 
     sector = _require_user_sector(request.user)
     docs = list(
-        Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
+        Document.objects.filter(sector=sector, id__in=ids)
         .order_by("-uploaded_at")
     )
 
@@ -1050,7 +1052,7 @@ def download_documents_files_bulk(request):
 
     sector = _require_user_sector(request.user)
     docs = list(
-        Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
+        Document.objects.filter(sector=sector, id__in=ids)
         .order_by("-uploaded_at")
     )
 
@@ -1097,6 +1099,6 @@ def download_documents_files_bulk(request):
 @login_required
 def document_json_view(request, doc_id):
     sector = _require_user_sector(request.user)
-    doc = get_object_or_404(Document, id=doc_id, owner=request.user, sector=sector)
+    doc = get_object_or_404(Document, id=doc_id, sector=sector)
     json_data = sanitize_payload(doc.extracted_json or {})
     return render(request, "documents/json.html", {"doc": doc, "json_data": json_data})
