@@ -33,6 +33,65 @@ KEYWORDS_MODE_CHOICES = [
     ("any", "Qualquer"),
 ]
 
+DEFAULT_MODULES = {
+    "ocr": True,
+    "extractor": True,
+    "contacts": False,
+}
+
+
+def default_modules():
+    return DEFAULT_MODULES.copy()
+
+
+class Sector(models.Model):
+    name = models.CharField(max_length=120, unique=True)
+    is_active = models.BooleanField(default=True)
+    modules = models.JSONField(default=default_modules, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class UserSector(models.Model):
+    ROLE_CHOICES = [
+        ("admin", "Admin"),
+        ("member", "Member"),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="sector_membership")
+    sector = models.ForeignKey(Sector, on_delete=models.PROTECT, related_name="members")
+    role = models.CharField(max_length=16, choices=ROLE_CHOICES, default="member")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["user_id"]
+
+    def __str__(self):
+        return f"{self.user_id} -> {self.sector_id} ({self.role})"
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    full_name = models.CharField(max_length=160, blank=True, default="")
+    phone = models.CharField(max_length=32, blank=True, default="")
+    company_role = models.CharField(max_length=120, blank=True, default="")
+    preferences = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["user_id"]
+
+    def __str__(self):
+        return f"UserProfile({self.user_id})"
+
 
 class DocumentStatus(models.TextChoices):
     PENDING = "PENDING", "Pendente"
@@ -135,6 +194,13 @@ class Document(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="documents")
+    sector = models.ForeignKey(
+        Sector,
+        on_delete=models.PROTECT,
+        related_name="documents",
+        null=True,
+        blank=True,
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(null=True, blank=True)
 
@@ -199,3 +265,40 @@ class Document(models.Model):
 
     def __str__(self):
         return f"{self.original_filename} ({self.id})"
+
+
+def get_user_sector(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return None
+    try:
+        return user.sector_membership.sector
+    except UserSector.DoesNotExist:
+        return None
+
+
+def get_user_sector_role(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return None
+    try:
+        return user.sector_membership.role
+    except UserSector.DoesNotExist:
+        return None
+
+
+def is_sector_admin(user):
+    return get_user_sector_role(user) == "admin"
+
+
+def get_sector_modules(sector):
+    if not sector:
+        return DEFAULT_MODULES.copy()
+    stored = sector.modules or {}
+    merged = DEFAULT_MODULES.copy()
+    if isinstance(stored, dict):
+        merged.update({key: bool(value) for key, value in stored.items()})
+    return merged
+
+
+def is_module_enabled(sector, key: str) -> bool:
+    modules = get_sector_modules(sector)
+    return bool(modules.get(key, False))

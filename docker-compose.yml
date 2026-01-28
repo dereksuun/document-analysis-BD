@@ -33,6 +33,8 @@ services:
       OCR_LANG: "por"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      RUN_MIGRATIONS: "1"
+      RUN_COLLECTSTATIC: "1"
     volumes:
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles
@@ -53,6 +55,8 @@ services:
       OCR_LANG: "por"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      RUN_MIGRATIONS: "0"
+      RUN_COLLECTSTATIC: "0"
     volumes:
       - ./media:/app/media
 

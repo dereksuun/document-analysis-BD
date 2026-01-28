@@ -26,6 +26,9 @@
             <a class="nav-item" href="{% url 'upload_documents' %}">Upload</a>
             <a class="nav-item" href="{% url 'extraction_settings' %}">Palavras-Chave</a>
             <a class="nav-item" href="{% url 'filter_presets' %}">Filtros</a>
+            {% if can_access_admin_panel %}
+              <a class="nav-item" href="{% url 'admin_panel' %}">Administracao</a>
+            {% endif %}
             <form method="post" action="{% url 'logout' %}" class="nav-logout">
               {% csrf_token %}
               <button type="submit" class="nav-link-button">Sair</button>

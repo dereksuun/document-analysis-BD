@@ -4,15 +4,16 @@ import os
 import re
 import zipfile
 
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.text import get_valid_filename
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework import serializers, status, viewsets
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
@@ -29,9 +30,14 @@ from .models import (
     ExtractionKeyword,
     ExtractionProfile,
     FilterPreset,
+    Sector,
     STRATEGY_CHOICES,
     VALUE_TYPE_CHOICES,
+    UserSector,
+    UserProfile,
     _normalize_keyword,
+    get_user_sector,
+    get_user_sector_role,
 )
 from .services import CORE_FIELD_KEYS, KEYWORD_PREFIX, _normalize_for_match, sanitize_payload
 from .tasks import process_document_task
@@ -39,6 +45,7 @@ from .tasks import process_document_task
 TERM_SPLIT_RE = re.compile(r"[,\s]+")
 MAX_BULK = 25
 SEARCH_SNIPPET_LEN = 120
+User = get_user_model()
 
 
 class IsAuthenticatedOrOptions(IsAuthenticated):
@@ -200,6 +207,20 @@ def _get_profile(user):
     return profile
 
 
+def _get_user_profile(user):
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    return profile
+
+
+def _require_user_sector(user):
+    sector = get_user_sector(user)
+    if not sector:
+        raise PermissionDenied("Usuário sem setor atribuído.")
+    if not sector.is_active:
+        raise PermissionDenied("Setor desativado.")
+    return sector
+
+
 def _build_json_filename(doc):
     base_name = doc.original_filename or str(doc.id)
     base_name = os.path.splitext(base_name)[0]
@@ -318,13 +339,60 @@ class MeView(APIView):
 
     def get(self, request):
         user = request.user
+        profile = UserProfile.objects.filter(user=user).first()
+        full_name = (profile.full_name if profile else "") or (user.get_full_name() or "")
+        sector = get_user_sector(user)
+        sector_payload = None
+        if sector:
+            sector_payload = {
+                "id": sector.id,
+                "name": sector.name,
+                "is_active": sector.is_active,
+                "role": get_user_sector_role(user),
+            }
         return Response(
             {
                 "id": user.id,
                 "username": user.get_username(),
                 "email": user.email or "",
+                "full_name": full_name,
+                "is_admin": user.is_staff or user.is_superuser,
                 "is_staff": user.is_staff,
                 "is_superuser": user.is_superuser,
+                "sector": sector_payload,
+            }
+        )
+
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticatedOrOptions]
+
+    def get(self, request):
+        user = request.user
+        profile = _get_user_profile(user)
+        return Response(
+            {
+                "id": user.id,
+                "username": user.get_username(),
+                "email": user.email or "",
+                "full_name": profile.full_name or "",
+                "phone": profile.phone or "",
+                "company_role": profile.company_role or "",
+                "preferences": profile.preferences or {},
+            }
+        )
+
+    def patch(self, request):
+        profile = _get_user_profile(request.user)
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {
+                "full_name": profile.full_name or "",
+                "phone": profile.phone or "",
+                "company_role": profile.company_role or "",
+                "preferences": profile.preferences or {},
             }
         )
 
@@ -517,6 +585,159 @@ class DocumentUploadSerializer(serializers.Serializer):
         return value
 
 
+class SectorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sector
+        fields = ["id", "name", "is_active", "modules", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_modules(self, value):
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("modules must be an object.")
+        return {key: bool(val) for key, val in value.items()}
+
+
+class UserSectorSerializer(serializers.ModelSerializer):
+    sector = serializers.SerializerMethodField()
+    sector_id = serializers.PrimaryKeyRelatedField(
+        queryset=Sector.objects.all(),
+        allow_null=True,
+        required=False,
+        write_only=True,
+    )
+    role = serializers.ChoiceField(choices=UserSector.ROLE_CHOICES, required=False)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "is_staff",
+            "is_superuser",
+            "sector",
+            "sector_id",
+            "role",
+        ]
+        read_only_fields = ["id", "username", "email", "is_staff", "is_superuser", "sector"]
+
+    def get_sector(self, obj):
+        sector = get_user_sector(obj)
+        if not sector:
+            return None
+        return {
+            "id": sector.id,
+            "name": sector.name,
+            "is_active": sector.is_active,
+            "role": get_user_sector_role(obj),
+        }
+
+    def update(self, instance, validated_data):
+        has_sector = "sector_id" in validated_data
+        has_role = "role" in validated_data
+        if has_sector or has_role:
+            sector = validated_data.get("sector_id")
+            role = validated_data.get("role")
+            if has_sector and sector is None:
+                UserSector.objects.filter(user=instance).delete()
+            else:
+                if sector is None:
+                    sector = get_user_sector(instance)
+                if sector:
+                    defaults = {"sector": sector}
+                    if role:
+                        defaults["role"] = role
+                    UserSector.objects.update_or_create(user=instance, defaults=defaults)
+        return instance
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["full_name", "phone", "company_role", "preferences"]
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    sector = serializers.SerializerMethodField()
+    sector_id = serializers.PrimaryKeyRelatedField(
+        queryset=Sector.objects.all(),
+        allow_null=True,
+        required=False,
+        write_only=True,
+    )
+    role = serializers.ChoiceField(choices=UserSector.ROLE_CHOICES, required=False)
+    password = serializers.CharField(write_only=True, required=False)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "sector",
+            "sector_id",
+            "role",
+            "password",
+        ]
+        read_only_fields = ["id", "sector", "is_staff", "is_superuser"]
+
+    def get_sector(self, obj):
+        sector = get_user_sector(obj)
+        if not sector:
+            return None
+        return {
+            "id": sector.id,
+            "name": sector.name,
+            "is_active": sector.is_active,
+            "role": get_user_sector_role(obj),
+        }
+
+    def create(self, validated_data):
+        password = validated_data.pop("password", "")
+        sector = validated_data.pop("sector_id", None)
+        role = validated_data.pop("role", None)
+        if not password:
+            raise ValidationError({"password": "password is required."})
+        user = User.objects.create_user(password=password, **validated_data)
+        if sector:
+            defaults = {"sector": sector}
+            if role:
+                defaults["role"] = role
+            UserSector.objects.update_or_create(user=user, defaults=defaults)
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", "")
+        sector = validated_data.pop("sector_id", None)
+        role = validated_data.pop("role", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if password:
+            instance.set_password(password)
+        instance.save()
+
+        has_sector = "sector_id" in self.initial_data
+        has_role = "role" in self.initial_data
+        if has_sector or has_role:
+            if has_sector and sector is None:
+                UserSector.objects.filter(user=instance).delete()
+            else:
+                if sector is None:
+                    sector = get_user_sector(instance)
+                if sector:
+                    defaults = {"sector": sector}
+                    if role:
+                        defaults["role"] = role
+                    UserSector.objects.update_or_create(user=instance, defaults=defaults)
+        return instance
+
+
 class FilterPresetSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterPreset
@@ -577,6 +798,57 @@ class FilterPresetSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class BillingOverviewView(APIView):
+    permission_classes = [IsAuthenticatedOrOptions]
+
+    def get(self, request):
+        return Response(
+            {
+                "plan": "free",
+                "period_start": "2026-01-01",
+                "period_end": "2026-01-31",
+                "usage": {
+                    "documents_processed": 12,
+                    "tokens_used": 0,
+                    "tokens_remaining": 0,
+                    "ai_requests": 0,
+                },
+                "limits": {"documents_month": 100, "tokens_month": 100000},
+            }
+        )
+
+
+class SectorViewSet(viewsets.ModelViewSet):
+    queryset = Sector.objects.all().order_by("name")
+    serializer_class = SectorSerializer
+    permission_classes = [IsAdminOrOptions]
+
+
+class UserViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = User.objects.all().order_by("username")
+    serializer_class = AdminUserSerializer
+    permission_classes = [IsAdminOrOptions]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        sector_id = (self.request.query_params.get("sector_id") or "").strip()
+        if not sector_id:
+            sector_id = (self.request.query_params.get("sector") or "").strip()
+        if sector_id:
+            lowered = sector_id.lower()
+            if lowered in {"none", "null", "sem", "sem_setor"}:
+                qs = qs.filter(sector_membership__isnull=True)
+            else:
+                qs = qs.filter(sector_membership__sector_id=sector_id)
+        return qs
+
+
 class DocumentViewSet(viewsets.GenericViewSet):
     queryset = Document.objects.all()
     permission_classes = [IsAuthenticatedOrOptions]
@@ -588,7 +860,8 @@ class DocumentViewSet(viewsets.GenericViewSet):
         return DocumentSerializer
 
     def get_queryset(self):
-        return Document.objects.filter(owner=self.request.user)
+        sector = _require_user_sector(self.request.user)
+        return Document.objects.filter(owner=self.request.user, sector=sector)
 
     def _apply_filters(self, qs):
         user = self.request.user
@@ -697,6 +970,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         file_obj = serializer.validated_data["file"]
         selected_fields = serializer.validated_data.get("selected_fields")
+        sector = _require_user_sector(request.user)
 
         profile = _get_profile(request.user)
         choices = _build_field_choices(request.user)
@@ -711,6 +985,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
         with transaction.atomic():
             doc = Document.objects.create(
                 owner=request.user,
+                sector=sector,
                 file=file_obj,
                 original_filename=file_obj.name,
                 selected_fields=selected_fields,
@@ -758,8 +1033,9 @@ class DocumentViewSet(viewsets.GenericViewSet):
         ids = list(dict.fromkeys(ids))
         ids = ids[:MAX_BULK]
 
+        sector = _require_user_sector(request.user)
         docs = list(
-            Document.objects.filter(owner=request.user, id__in=ids)
+            Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
             .exclude(status=DocumentStatus.PROCESSING)
         )
 
@@ -800,8 +1076,9 @@ class DocumentViewSet(viewsets.GenericViewSet):
             raise ValidationError({"ids": "ids must be a non-empty list."})
 
         ids = list(dict.fromkeys(ids))[:MAX_BULK]
+        sector = _require_user_sector(request.user)
         docs = list(
-            Document.objects.filter(owner=request.user, id__in=ids)
+            Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
             .order_by("-uploaded_at")
         )
 
@@ -838,8 +1115,9 @@ class DocumentViewSet(viewsets.GenericViewSet):
             raise ValidationError({"ids": "ids must be a non-empty list."})
 
         ids = list(dict.fromkeys(ids))[:MAX_BULK]
+        sector = _require_user_sector(request.user)
         docs = list(
-            Document.objects.filter(owner=request.user, id__in=ids)
+            Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
             .order_by("-uploaded_at")
         )
 

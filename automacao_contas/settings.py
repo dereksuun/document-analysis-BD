@@ -59,6 +59,10 @@ INSTALLED_APPS = [
     "documents",
 ]
 
+AUTHENTICATION_BACKENDS = [
+    "documents.auth_backends.EmailOrUsernameBackend",
+]
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -85,6 +89,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "documents.context_processors.admin_panel_access",
             ],
         },
     },

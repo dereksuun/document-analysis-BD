@@ -777,6 +777,12 @@ col.col-actions {
   font-size: 12px;
 }
 
+.success-hint {
+  color: var(--status-done);
+  font-weight: 600;
+  font-size: 12px;
+}
+
 .pagination {
   display: flex;
   gap: 12px;

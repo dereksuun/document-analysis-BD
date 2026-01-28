@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from .models import Document, ExtractionField, ExtractionKeyword, ExtractionProfile, FilterPreset
+from .models import (
+    Document,
+    ExtractionField,
+    ExtractionKeyword,
+    ExtractionProfile,
+    FilterPreset,
+    Sector,
+    UserSector,
+    UserProfile,
+)
 
 KEYWORD_PREFIX = "keyword:"
 
@@ -42,9 +51,9 @@ def _remove_field_keys(keys, owner_id=None):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ("id", "original_filename", "owner", "status", "uploaded_at", "processed_at")
-    list_filter = ("status", "uploaded_at")
-    search_fields = ("original_filename", "id", "owner__username")
+    list_display = ("id", "original_filename", "owner", "sector", "status", "uploaded_at", "processed_at")
+    list_filter = ("status", "uploaded_at", "sector")
+    search_fields = ("original_filename", "id", "owner__username", "sector__name")
 
 
 @admin.register(ExtractionProfile)
@@ -111,3 +120,23 @@ class FilterPresetAdmin(admin.ModelAdmin):
     list_display = ("name", "owner", "updated_at")
     list_filter = ("updated_at",)
     search_fields = ("name", "owner__username", "owner__email")
+
+
+@admin.register(Sector)
+class SectorAdmin(admin.ModelAdmin):
+    list_display = ("name", "is_active", "created_at", "updated_at")
+    list_filter = ("is_active", "created_at")
+    search_fields = ("name",)
+
+
+@admin.register(UserSector)
+class UserSectorAdmin(admin.ModelAdmin):
+    list_display = ("user", "sector", "role", "updated_at")
+    list_filter = ("sector", "updated_at")
+    search_fields = ("user__username", "user__email", "sector__name")
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "full_name", "company_role", "updated_at")
+    search_fields = ("user__username", "user__email", "full_name", "company_role")

@@ -4,10 +4,14 @@ import logging
 import os
 import re
 import zipfile
+import secrets
 
+from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import FileResponse, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -22,9 +26,13 @@ from .models import (
     ExtractionKeyword,
     ExtractionProfile,
     FilterPreset,
+    Sector,
     STRATEGY_CHOICES,
+    UserSector,
     VALUE_TYPE_CHOICES,
     _normalize_keyword,
+    get_user_sector,
+    get_user_sector_role,
 )
 from .services import KEYWORD_PREFIX, _normalize_for_match, sanitize_payload
 from .tasks import process_document_task
@@ -36,6 +44,7 @@ SEARCH_SNIPPET_LEN = 120
 TERM_SPLIT_RE = re.compile(r"[,\s]+")
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 def _split_terms(raw: str) -> list[str]:
@@ -175,12 +184,26 @@ def _get_profile(user):
     return profile
 
 
+def _require_user_sector(user):
+    sector = get_user_sector(user)
+    if not sector:
+        raise PermissionDenied("Usuário sem setor atribuído.")
+    if not sector.is_active:
+        raise PermissionDenied("Setor desativado.")
+    return sector
+
+
+def _is_system_admin(user):
+    return bool(user and (user.is_staff or user.is_superuser))
+
+
 def _get_force_ocr(request) -> bool:
     return request.POST.get("force_ocr") == "1" or request.GET.get("force_ocr") == "1"
 
 
 @login_required
 def upload_documents(request):
+    sector = _require_user_sector(request.user)
     if request.method == "POST":
         form = MultiUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -203,6 +226,7 @@ def upload_documents(request):
                 for file_obj in files:
                     doc = Document.objects.create(
                         owner=request.user,
+                        sector=sector,
                         file=file_obj,
                         original_filename=file_obj.name,
                         selected_fields=selected_fields,
@@ -223,6 +247,7 @@ def upload_documents(request):
 
 @login_required
 def documents_list(request):
+    sector = _require_user_sector(request.user)
     search_query = request.GET.get("q", "").strip()
     exclude_query = request.GET.get("exclude", "").strip()
     preset_id = request.GET.get("preset", "").strip()
@@ -260,7 +285,7 @@ def documents_list(request):
         or mode == "any"
     )
 
-    base_docs = Document.objects.filter(owner=request.user)
+    base_docs = Document.objects.filter(owner=request.user, sector=sector)
     processing_count = base_docs.filter(status=DocumentStatus.PROCESSING).count()
     docs = base_docs
     presets = list(FilterPreset.objects.filter(owner=request.user).order_by("name"))
@@ -550,6 +575,260 @@ def filter_preset_edit(request, preset_id):
 
 
 @login_required
+def admin_panel(request):
+    system_admin = _is_system_admin(request.user)
+    current_sector = get_user_sector(request.user)
+    sector_role = get_user_sector_role(request.user)
+    sector_admin = sector_role == "admin"
+
+    if not (system_admin or sector_admin):
+        return HttpResponseForbidden("Sem permissao.")
+    if sector_admin and not current_sector:
+        return HttpResponseForbidden("Sem setor.")
+
+    can_manage_sectors = system_admin
+    can_manage_users = system_admin or sector_admin
+
+    error = ""
+    if request.method == "POST":
+        action = request.POST.get("action") or ""
+        if action == "create_sector":
+            if not can_manage_sectors:
+                return HttpResponseForbidden("Sem permissao.")
+            name = (request.POST.get("name") or "").strip()
+            is_active = request.POST.get("is_active") == "on"
+            if not name:
+                error = "Informe o nome do setor."
+            elif Sector.objects.filter(name__iexact=name).exists():
+                error = "Ja existe um setor com esse nome."
+            else:
+                try:
+                    Sector.objects.create(name=name, is_active=is_active)
+                    return redirect("admin_panel")
+                except IntegrityError:
+                    error = "Ja existe um setor com esse nome."
+        elif action == "update_sector":
+            if not can_manage_sectors:
+                return HttpResponseForbidden("Sem permissao.")
+            sector_id = request.POST.get("sector_id")
+            name = (request.POST.get("name") or "").strip()
+            is_active = request.POST.get("is_active") == "on"
+            if not sector_id:
+                error = "Setor invalido."
+            elif not name:
+                error = "Informe o nome do setor."
+            else:
+                sector = Sector.objects.filter(id=sector_id).first()
+                if not sector:
+                    error = "Setor nao encontrado."
+                elif Sector.objects.filter(name__iexact=name).exclude(id=sector.id).exists():
+                    error = "Ja existe um setor com esse nome."
+                else:
+                    sector.name = name
+                    sector.is_active = is_active
+                    sector.save(update_fields=["name", "is_active", "updated_at"])
+                    return redirect("admin_panel")
+        elif action == "create_user":
+            if not can_manage_users:
+                return HttpResponseForbidden("Sem permissao.")
+            username = (request.POST.get("username") or "").strip()
+            email = (request.POST.get("email") or "").strip()
+            password = request.POST.get("password") or ""
+            role = (request.POST.get("role") or "member").strip().lower()
+            if role not in {"admin", "member"}:
+                role = "member"
+            if not username:
+                error = "Informe o usuario."
+            elif User.objects.filter(username__iexact=username).exists():
+                error = "Ja existe um usuario com esse nome."
+            elif not password:
+                error = "Informe a senha."
+            else:
+                is_active = True
+                is_staff = False
+                is_superuser = False
+                if system_admin:
+                    is_active = request.POST.get("is_active") == "on"
+                    is_staff = request.POST.get("is_staff") == "on"
+                    if request.user.is_superuser:
+                        is_superuser = request.POST.get("is_superuser") == "on"
+
+                target_sector = None
+                if system_admin:
+                    sector_id = request.POST.get("sector_id") or ""
+                    if sector_id:
+                        target_sector = Sector.objects.filter(id=sector_id).first()
+                        if not target_sector:
+                            error = "Setor invalido."
+                    else:
+                        target_sector = None
+                else:
+                    target_sector = current_sector
+
+                if not error:
+                    user = User.objects.create_user(username=username, email=email, password=password)
+                    user.is_active = is_active
+                    user.is_staff = is_staff
+                    user.is_superuser = is_superuser
+                    user.save(update_fields=["is_active", "is_staff", "is_superuser"])
+                    if target_sector:
+                        UserSector.objects.update_or_create(
+                            user=user,
+                            defaults={"sector": target_sector, "role": role},
+                        )
+                    return redirect("admin_panel")
+        elif action == "update_user":
+            if not can_manage_users:
+                return HttpResponseForbidden("Sem permissao.")
+            user_id = request.POST.get("user_id") or ""
+            target_user = User.objects.filter(id=user_id).first()
+            if not target_user:
+                error = "Usuario nao encontrado."
+            elif (not system_admin) and (target_user.is_staff or target_user.is_superuser):
+                error = "Nao e permitido alterar este usuario."
+            elif system_admin and target_user.is_superuser and not request.user.is_superuser:
+                error = "Nao e permitido alterar este usuario."
+            else:
+                if not system_admin:
+                    membership = UserSector.objects.filter(
+                        user=target_user,
+                        sector=current_sector,
+                    ).first()
+                    if not membership and target_user != request.user:
+                        error = "Usuario fora do seu setor."
+                if not error:
+                    username = (request.POST.get("username") or "").strip()
+                    raw_email = request.POST.get("email")
+                    password = request.POST.get("password") or ""
+                    role = (request.POST.get("role") or "").strip().lower()
+                    if role and role not in {"admin", "member"}:
+                        role = ""
+
+                    if username and username.lower() != target_user.username.lower():
+                        if User.objects.filter(username__iexact=username).exclude(id=target_user.id).exists():
+                            error = "Ja existe um usuario com esse nome."
+                        else:
+                            target_user.username = username
+                    if raw_email is not None:
+                        target_user.email = (raw_email or "").strip()
+                    if password:
+                        target_user.set_password(password)
+                    if system_admin:
+                        target_user.is_active = request.POST.get("is_active") == "on"
+                        target_user.is_staff = request.POST.get("is_staff") == "on"
+                        if request.user.is_superuser:
+                            target_user.is_superuser = request.POST.get("is_superuser") == "on"
+                    if not error:
+                        target_user.save()
+
+                        if system_admin:
+                            sector_id = request.POST.get("sector_id") or ""
+                            if sector_id:
+                                target_sector = Sector.objects.filter(id=sector_id).first()
+                                if not target_sector:
+                                    error = "Setor invalido."
+                                else:
+                                    defaults = {"sector": target_sector}
+                                    if role:
+                                        defaults["role"] = role
+                                    UserSector.objects.update_or_create(
+                                        user=target_user,
+                                        defaults=defaults,
+                                    )
+                            else:
+                                UserSector.objects.filter(user=target_user).delete()
+                        else:
+                            defaults = {"sector": current_sector}
+                            if role:
+                                defaults["role"] = role
+                            UserSector.objects.update_or_create(
+                                user=target_user,
+                                defaults=defaults,
+                            )
+
+                        if not error:
+                            return redirect("admin_panel")
+        elif action == "reset_password":
+            if not can_manage_users:
+                return HttpResponseForbidden("Sem permissao.")
+            user_id = request.POST.get("user_id") or ""
+            target_user = User.objects.filter(id=user_id).first()
+            if not target_user:
+                error = "Usuario nao encontrado."
+            elif (not system_admin) and (target_user.is_staff or target_user.is_superuser):
+                error = "Nao e permitido alterar este usuario."
+            else:
+                if not system_admin:
+                    membership = UserSector.objects.filter(
+                        user=target_user,
+                        sector=current_sector,
+                    ).first()
+                    if not membership and target_user != request.user:
+                        error = "Usuario fora do seu setor."
+                if not error:
+                    temp_password = secrets.token_urlsafe(8)
+                    target_user.set_password(temp_password)
+                    target_user.save(update_fields=["password"])
+                    messages.success(
+                        request,
+                        f"Senha temporaria de {target_user.username}: {temp_password}",
+                    )
+                    return redirect("admin_panel")
+        elif action == "delete_user":
+            if not system_admin:
+                return HttpResponseForbidden("Sem permissao.")
+            user_id = request.POST.get("user_id") or ""
+            target_user = User.objects.filter(id=user_id).first()
+            if not target_user:
+                error = "Usuario nao encontrado."
+            elif target_user.id == request.user.id:
+                error = "Nao e permitido excluir o proprio usuario."
+            elif target_user.is_superuser and not request.user.is_superuser:
+                error = "Nao e permitido excluir este usuario."
+            else:
+                target_user.delete()
+                messages.success(request, "Usuario excluido.")
+                return redirect("admin_panel")
+        else:
+            error = "Acao invalida."
+
+    if system_admin:
+        sectors = list(Sector.objects.order_by("name"))
+        users = list(User.objects.order_by("username"))
+        memberships = {
+            membership.user_id: membership
+            for membership in UserSector.objects.select_related("sector")
+        }
+    else:
+        sectors = [current_sector] if current_sector else []
+        memberships = {
+            membership.user_id: membership
+            for membership in UserSector.objects.select_related("sector").filter(sector=current_sector)
+        }
+        users = list(User.objects.filter(id__in=memberships.keys()).order_by("username"))
+
+    for user in users:
+        membership = memberships.get(user.id)
+        user.sector_obj = membership.sector if membership else None
+        user.sector_role = membership.role if membership else None
+
+    return render(
+        request,
+        "documents/admin.html",
+        {
+            "sectors": sectors,
+            "users": users,
+            "error": error,
+            "can_manage_sectors": can_manage_sectors,
+            "can_manage_users": can_manage_users,
+            "system_admin": system_admin,
+            "sector_admin": sector_admin,
+            "current_sector": current_sector,
+        },
+    )
+
+
+@login_required
 def delete_keyword(request, keyword_id):
     if not request.user.is_staff:
         return HttpResponseForbidden("Sem permissao.")
@@ -582,7 +861,8 @@ def process_document_view(request, doc_id):
     if request.method != "POST":
         return HttpResponseForbidden("Método inválido.")
 
-    doc = get_object_or_404(Document, id=doc_id, owner=request.user)
+    sector = _require_user_sector(request.user)
+    doc = get_object_or_404(Document, id=doc_id, owner=request.user, sector=sector)
     allow_reprocess = request.POST.get("reprocess") == "1"
 
     if doc.status == DocumentStatus.PROCESSING:
@@ -623,9 +903,9 @@ def process_documents_bulk(request):
     ids = list(dict.fromkeys(ids))
     ids = ids[:MAX_BULK]
 
-    qs = (
-        Document.objects.filter(owner=request.user, id__in=ids)
-        .exclude(status=DocumentStatus.PROCESSING)
+    sector = _require_user_sector(request.user)
+    qs = Document.objects.filter(owner=request.user, sector=sector, id__in=ids).exclude(
+        status=DocumentStatus.PROCESSING
     )
     if action != "reprocess":
         qs = qs.exclude(status=DocumentStatus.DONE)
@@ -655,7 +935,8 @@ def process_documents_bulk(request):
 
 @login_required
 def download_document(request, doc_id):
-    doc = get_object_or_404(Document, id=doc_id, owner=request.user)
+    sector = _require_user_sector(request.user)
+    doc = get_object_or_404(Document, id=doc_id, owner=request.user, sector=sector)
     filename = doc.original_filename or os.path.basename(doc.file.name)
     return FileResponse(doc.file.open("rb"), as_attachment=True, filename=filename)
 
@@ -705,7 +986,8 @@ def _build_json_filename(doc):
 
 @login_required
 def download_document_json(request, doc_id):
-    doc = get_object_or_404(Document, id=doc_id, owner=request.user)
+    sector = _require_user_sector(request.user)
+    doc = get_object_or_404(Document, id=doc_id, owner=request.user, sector=sector)
     json_data = sanitize_payload(doc.extracted_json or {})
     payload = json.dumps(json_data, ensure_ascii=False, indent=2)
     filename = _build_json_filename(doc)
@@ -723,8 +1005,9 @@ def download_documents_json_bulk(request):
     if not ids:
         return redirect("documents_list")
 
+    sector = _require_user_sector(request.user)
     docs = list(
-        Document.objects.filter(owner=request.user, id__in=ids)
+        Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
         .order_by("-uploaded_at")
     )
 
@@ -765,8 +1048,9 @@ def download_documents_files_bulk(request):
     if not ids:
         return redirect("documents_list")
 
+    sector = _require_user_sector(request.user)
     docs = list(
-        Document.objects.filter(owner=request.user, id__in=ids)
+        Document.objects.filter(owner=request.user, sector=sector, id__in=ids)
         .order_by("-uploaded_at")
     )
 
@@ -812,6 +1096,7 @@ def download_documents_files_bulk(request):
 
 @login_required
 def document_json_view(request, doc_id):
-    doc = get_object_or_404(Document, id=doc_id, owner=request.user)
+    sector = _require_user_sector(request.user)
+    doc = get_object_or_404(Document, id=doc_id, owner=request.user, sector=sector)
     json_data = sanitize_payload(doc.extracted_json or {})
     return render(request, "documents/json.html", {"doc": doc, "json_data": json_data})

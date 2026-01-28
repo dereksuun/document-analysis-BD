@@ -9,6 +9,7 @@ urlpatterns = [
     path("settings/extraction/", views.extraction_settings, name="extraction_settings"),
     path("presets/", views.filter_presets, name="filter_presets"),
     path("presets/<uuid:preset_id>/", views.filter_preset_edit, name="filter_preset_edit"),
+    path("admin/", views.admin_panel, name="admin_panel"),
     path("settings/extraction/keywords/<int:keyword_id>/delete/", views.delete_keyword, name="delete_keyword"),
     path("process/<uuid:doc_id>/", views.process_document_view, name="process_document"),
     path("process/bulk/", views.process_documents_bulk, name="process_documents_bulk"),

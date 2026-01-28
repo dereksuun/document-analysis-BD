@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}Administracao{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="page-header">
+      <div>
+        <h1>Administracao</h1>
+        <p class="help-text">Gerencie setores, niveis e usuarios.</p>
+      </div>
+      <a class="btn btn-ghost" href="{% url 'documents_list' %}">Voltar</a>
+    </div>
+
+    {% if error %}
+      <p class="error-hint">{{ error }}</p>
+    {% endif %}
+    {% if messages %}
+      {% for message in messages %}
+        <p class="{% if 'success' in message.tags %}success-hint{% elif 'error' in message.tags %}error-hint{% else %}help-text{% endif %}">
+          {{ message }}
+        </p>
+      {% endfor %}
+    {% endif %}
+
+    {% if can_manage_sectors %}
+      <div class="keyword-add">
+        <h2>Novo setor</h2>
+        <form method="post" class="form-grid">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_sector" />
+          <div class="form-field">
+            <label for="sector-name">Nome</label>
+            <input
+              id="sector-name"
+              class="input-text"
+              type="text"
+              name="name"
+              placeholder="Ex: Financeiro"
+              required
+            />
+          </div>
+          <div class="form-field">
+            <label>
+              <input type="checkbox" name="is_active" checked />
+              Ativo
+            </label>
+          </div>
+          <div class="form-field">
+            <button class="btn btn-primary" type="submit">Criar setor</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="keyword-admin">
+        <h2>Setores cadastrados</h2>
+        <div class="table-card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sector in sectors %}
+                <tr>
+                  <td>{{ sector.id }}</td>
+                  <td>
+                    <form id="sector-form-{{ sector.id }}" method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="update_sector" />
+                      <input type="hidden" name="sector_id" value="{{ sector.id }}" />
+                    </form>
+                    <input
+                      class="input-text"
+                      type="text"
+                      name="name"
+                      value="{{ sector.name }}"
+                      form="sector-form-{{ sector.id }}"
+                      required
+                    />
+                  </td>
+                  <td>
+                    <label class="toggle-option">
+                      <input
+                        type="checkbox"
+                        name="is_active"
+                        form="sector-form-{{ sector.id }}"
+                        {% if sector.is_active %}checked{% endif %}
+                      />
+                      Ativo
+                    </label>
+                  </td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" type="submit" form="sector-form-{{ sector.id }}">
+                      Salvar
+                    </button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4">
+                    <span class="help-text">Nenhum setor cadastrado.</span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if can_manage_users %}
+      <div class="keyword-add">
+        <h2>Novo usuario</h2>
+        <form method="post" class="form-grid">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_user" />
+          <div class="form-field">
+            <label for="new-username">Usuario</label>
+            <input
+              id="new-username"
+              class="input-text"
+              type="text"
+              name="username"
+              placeholder="ex: joao"
+              required
+            />
+          </div>
+          <div class="form-field">
+            <label for="new-email">Email</label>
+            <input id="new-email" class="input-text" type="email" name="email" />
+          </div>
+          <div class="form-field">
+            <label for="new-password">Senha</label>
+            <input id="new-password" class="input-text" type="password" name="password" required />
+          </div>
+          {% if system_admin %}
+            <div class="form-field">
+              <label>
+                <input type="checkbox" name="is_active" checked />
+                Ativo
+              </label>
+            </div>
+            <div class="form-field">
+              <label>
+                <input type="checkbox" name="is_staff" />
+                Admin sistema
+              </label>
+            </div>
+            {% if user.is_superuser %}
+              <div class="form-field">
+                <label>
+                  <input type="checkbox" name="is_superuser" />
+                  Superuser
+                </label>
+              </div>
+            {% endif %}
+          {% endif %}
+          {% if system_admin %}
+            <div class="form-field">
+              <label for="new-sector">Setor</label>
+              <select id="new-sector" name="sector_id" class="input-select">
+                <option value="">Sem setor</option>
+                {% for sector in sectors %}
+                  <option value="{{ sector.id }}">
+                    {{ sector.name }}{% if not sector.is_active %} (inativo){% endif %}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          {% else %}
+            <div class="form-field">
+              <label>Setor</label>
+              <span class="help-text">{{ current_sector.name }}</span>
+            </div>
+          {% endif %}
+          <div class="form-field">
+            <label for="new-role">Nivel</label>
+            <select id="new-role" name="role" class="input-select">
+              <option value="member" selected>Member</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <button class="btn btn-primary" type="submit">Criar usuario</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="keyword-admin">
+        <h2>Usuarios</h2>
+        <div class="table-card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Ativo</th>
+                <th>Admin sistema</th>
+                {% if user.is_superuser %}
+                  <th>Superuser</th>
+                {% endif %}
+                <th>Setor</th>
+                <th>Nivel</th>
+                <th>Nova senha</th>
+                <th>Reset</th>
+                <th></th>
+                {% if system_admin %}
+                  <th>Excluir</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for account in users %}
+                <tr>
+                  <td>
+                    <form id="user-form-{{ account.id }}" method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="update_user" />
+                      <input type="hidden" name="user_id" value="{{ account.id }}" />
+                    </form>
+                    <input
+                      class="input-text"
+                      type="text"
+                      name="username"
+                      value="{{ account.username }}"
+                      form="user-form-{{ account.id }}"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      class="input-text"
+                      type="email"
+                      name="email"
+                      value="{{ account.email|default:"" }}"
+                      form="user-form-{{ account.id }}"
+                    />
+                  </td>
+                  <td>
+                    {% if system_admin %}
+                      <label class="toggle-option">
+                        <input type="checkbox" name="is_active" form="user-form-{{ account.id }}" {% if account.is_active %}checked{% endif %} />
+                        Ativo
+                      </label>
+                    {% else %}
+                      {% if account.is_active %}Sim{% else %}Nao{% endif %}
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if system_admin %}
+                      <label class="toggle-option">
+                        <input type="checkbox" name="is_staff" form="user-form-{{ account.id }}" {% if account.is_staff %}checked{% endif %} />
+                        Admin
+                      </label>
+                    {% else %}
+                      {% if account.is_staff or account.is_superuser %}Sim{% else %}Nao{% endif %}
+                    {% endif %}
+                  </td>
+                  {% if user.is_superuser %}
+                    <td>
+                      {% if system_admin and user.is_superuser %}
+                        <label class="toggle-option">
+                          <input type="checkbox" name="is_superuser" form="user-form-{{ account.id }}" {% if account.is_superuser %}checked{% endif %} />
+                          Super
+                        </label>
+                      {% else %}
+                        {% if account.is_superuser %}Sim{% else %}Nao{% endif %}
+                      {% endif %}
+                    </td>
+                  {% endif %}
+                  <td>
+                    {% if system_admin %}
+                      <select name="sector_id" class="input-select" form="user-form-{{ account.id }}">
+                        <option value="">Sem setor</option>
+                        {% for sector in sectors %}
+                          <option value="{{ sector.id }}" {% if account.sector_obj and account.sector_obj.id == sector.id %}selected{% endif %}>
+                            {{ sector.name }}{% if not sector.is_active %} (inativo){% endif %}
+                          </option>
+                        {% endfor %}
+                      </select>
+                    {% else %}
+                      <span class="help-text">{{ current_sector.name }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <select name="role" class="input-select" form="user-form-{{ account.id }}">
+                      <option value="member" {% if not account.sector_role or account.sector_role == "member" %}selected{% endif %}>Member</option>
+                      <option value="admin" {% if account.sector_role == "admin" %}selected{% endif %}>Admin</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input
+                      class="input-text"
+                      type="password"
+                      name="password"
+                      placeholder="Opcional"
+                      form="user-form-{{ account.id }}"
+                    />
+                  </td>
+                  <td>
+                    <form id="reset-form-{{ account.id }}" method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="reset_password" />
+                      <input type="hidden" name="user_id" value="{{ account.id }}" />
+                      <button class="btn btn-ghost btn-sm" type="submit" form="reset-form-{{ account.id }}">
+                        Resetar
+                      </button>
+                    </form>
+                  </td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" type="submit" form="user-form-{{ account.id }}">
+                      Salvar
+                    </button>
+                  </td>
+                  {% if system_admin %}
+                    <td>
+                      <form id="delete-form-{{ account.id }}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_user" />
+                        <input type="hidden" name="user_id" value="{{ account.id }}" />
+                        <button class="btn btn-ghost btn-sm" type="submit" form="delete-form-{{ account.id }}">
+                          Excluir
+                        </button>
+                      </form>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="11">
+                    <span class="help-text">Nenhum usuario encontrado.</span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
