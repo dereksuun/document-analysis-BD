@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 BASE_FIELD_CHOICES = [
     ("due_date", "Data de vencimento"),
+    ("issue_date", "Data de emissao"),
     ("document_value", "Valor do documento"),
     ("barcode", "Codigo de barras"),
 ]

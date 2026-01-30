@@ -88,7 +88,7 @@ EXPERIENCE_SECTION_STOP_HEADERS = (
 logger = logging.getLogger(__name__)
 
 KEYWORD_PREFIX = "keyword:"
-CORE_FIELD_KEYS = {"due_date", "document_value", "barcode", "juros", "multa"}
+CORE_FIELD_KEYS = {"due_date", "issue_date", "document_value", "barcode", "juros", "multa"}
 BUILTIN_FIELD_KEYS = set(TYPE_BY_BUILTIN.keys())
 
 ALIAS_FIELD_KEYS = {
@@ -828,6 +828,8 @@ def sanitize_payload(payload: dict) -> dict:
     if isinstance(dates, dict):
         if "vencimento" in dates and "due_date" not in fields:
             fields["due_date"] = dates.get("vencimento")
+        if "emissao" in dates and "issue_date" not in fields:
+            fields["issue_date"] = dates.get("emissao")
 
     amounts = payload.get("amounts") or {}
     if isinstance(amounts, dict):
@@ -1263,6 +1265,13 @@ def process_document(
         if not due_date:
             _mark_missing_builtin("due_date")
         _log_builtin_field("due_date", due_date)
+
+    if "issue_date" in resolved_fields:
+        issue_date = core["dates"].get("emissao") if core else None
+        payload["fields"]["issue_date"] = issue_date if issue_date else None
+        if not issue_date:
+            _mark_missing_builtin("issue_date")
+        _log_builtin_field("issue_date", issue_date)
 
     if "document_value" in resolved_fields:
         value = core["amounts"].get("valor_documento") if core else None

@@ -4,14 +4,17 @@ import json
 import os
 import re
 import zipfile
+from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
+from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
+from django.utils.dateparse import parse_date
 from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -24,7 +27,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -79,6 +82,11 @@ class DocumentPagination(PageNumberPagination):
     max_page_size = 100
 
 
+class DocumentLimitOffsetPagination(LimitOffsetPagination):
+    default_limit = 10
+    max_limit = 100
+
+
 def _split_terms(raw: str) -> list[str]:
     if not raw:
         return []
@@ -95,6 +103,57 @@ def _split_terms(raw: str) -> list[str]:
         seen.add(normalized)
         normalized_terms.append(normalized)
     return normalized_terms
+
+
+def _split_param_values(raw: str) -> list[str]:
+    if not raw:
+        return []
+    value = raw.strip()
+    if not value:
+        return []
+    if ";" in value:
+        parts = [part.strip() for part in value.split(";") if part.strip()]
+    elif "," in value:
+        parts = [part.strip() for part in value.split(",") if part.strip()]
+    else:
+        parts = [value]
+    return parts
+
+
+def _get_list_param(params, name: str) -> list[str]:
+    values: list[str] = []
+    for raw in params.getlist(name):
+        values.extend(_split_param_values(raw))
+    return list(dict.fromkeys([value for value in values if value]))
+
+
+def _normalize_digits(value: str) -> str:
+    return re.sub(r"\D", "", value or "")
+
+
+def _parse_decimal_param(value: str, param_name: str) -> Decimal | None:
+    if not value:
+        return None
+    cleaned = str(value).strip()
+    if not cleaned:
+        return None
+    if "," in cleaned and "." in cleaned:
+        cleaned = cleaned.replace(".", "").replace(",", ".")
+    elif "," in cleaned and "." not in cleaned:
+        cleaned = cleaned.replace(",", ".")
+    try:
+        return Decimal(cleaned)
+    except InvalidOperation as exc:
+        raise ValidationError({param_name: "valor invalido. Use numero decimal."}) from exc
+
+
+def _parse_date_param(value: str, param_name: str):
+    if not value:
+        return None
+    parsed = parse_date(value)
+    if not parsed:
+        raise ValidationError({param_name: "data invalida. Use YYYY-MM-DD."})
+    return parsed
 
 
 def _apply_term_filters(queryset, terms: list[str], *, mode: str = "all", field: str = "text_content_norm"):
@@ -1120,6 +1179,24 @@ class DocumentViewSet(viewsets.GenericViewSet):
         if mode not in {"all", "any"}:
             mode = "all"
 
+        params = self.request.query_params
+        cnpj_values = _get_list_param(params, "cnpj")
+        payee_cnpj_values = _get_list_param(params, "payee_cnpj") or _get_list_param(params, "cnpj_cedente")
+        payer_cnpj_values = _get_list_param(params, "payer_cnpj") or _get_list_param(params, "cnpj_pagador")
+        cpf_values = _get_list_param(params, "cpf")
+        fornecedor_terms = _get_list_param(params, "fornecedor") or _get_list_param(params, "payee_name")
+        pagador_terms = _get_list_param(params, "pagador") or _get_list_param(params, "payer_name")
+        documento_terms = _get_list_param(params, "document_number") or _get_list_param(params, "numero_documento")
+        barcode_values = _get_list_param(params, "barcode")
+        valor_min_raw = (params.get("valor_min") or "").strip()
+        valor_max_raw = (params.get("valor_max") or "").strip()
+        data_ini_raw = (params.get("data_ini") or params.get("data_emissao_ini") or "").strip()
+        data_fim_raw = (params.get("data_fim") or params.get("data_emissao_fim") or "").strip()
+        vencimento_ini_raw = (params.get("vencimento_ini") or "").strip()
+        vencimento_fim_raw = (params.get("vencimento_fim") or "").strip()
+        order_by_raw = (params.get("order_by") or "").strip().lower()
+        direction_raw = (params.get("direction") or "desc").strip().lower()
+
         search_terms = _split_terms(search_query)
         exclude_terms = _split_terms(exclude_query)
 
@@ -1139,11 +1216,54 @@ class DocumentViewSet(viewsets.GenericViewSet):
                 return False
             return None
 
+        def _normalize_cnpj(values: list[str], param_name: str) -> list[str]:
+            normalized = []
+            for raw in values:
+                digits = _normalize_digits(raw)
+                if not digits:
+                    continue
+                if len(digits) != 14:
+                    raise ValidationError({param_name: "CNPJ deve ter 14 digitos."})
+                normalized.append(digits)
+            return list(dict.fromkeys(normalized))
+
+        def _normalize_cpf(values: list[str], param_name: str) -> list[str]:
+            normalized = []
+            for raw in values:
+                digits = _normalize_digits(raw)
+                if not digits:
+                    continue
+                if len(digits) != 11:
+                    raise ValidationError({param_name: "CPF deve ter 11 digitos."})
+                normalized.append(digits)
+            return list(dict.fromkeys(normalized))
+
+        def _normalize_digits_list(values: list[str]) -> list[str]:
+            normalized = []
+            for raw in values:
+                digits = _normalize_digits(raw)
+                if digits:
+                    normalized.append(digits)
+            return list(dict.fromkeys(normalized))
+
         exp_min_override = _parse_int(exp_min_raw)
         exp_max_override = _parse_int(exp_max_raw)
         age_min_override = _parse_int(age_min_raw)
         age_max_override = _parse_int(age_max_raw)
         exclude_unknowns_override = _parse_bool(exclude_unknowns_raw)
+        valor_min = _parse_decimal_param(valor_min_raw, "valor_min")
+        valor_max = _parse_decimal_param(valor_max_raw, "valor_max")
+        data_ini = _parse_date_param(data_ini_raw, "data_ini")
+        data_fim = _parse_date_param(data_fim_raw, "data_fim")
+        vencimento_ini = _parse_date_param(vencimento_ini_raw, "vencimento_ini")
+        vencimento_fim = _parse_date_param(vencimento_fim_raw, "vencimento_fim")
+
+        if valor_min is not None and valor_max is not None and valor_min > valor_max:
+            raise ValidationError({"valor_max": "valor_max deve ser >= valor_min."})
+        if data_ini and data_fim and data_ini > data_fim:
+            raise ValidationError({"data_fim": "data_fim deve ser >= data_ini."})
+        if vencimento_ini and vencimento_fim and vencimento_ini > vencimento_fim:
+            raise ValidationError({"vencimento_fim": "vencimento_fim deve ser >= vencimento_ini."})
 
         effective_terms = search_terms
         effective_mode = mode
@@ -1179,16 +1299,93 @@ class DocumentViewSet(viewsets.GenericViewSet):
             if preset_exclude_terms and not exclude_terms:
                 effective_exclude_terms = preset_exclude_terms
 
+        cnpj_list = _normalize_cnpj(cnpj_values, "cnpj")
+        payee_cnpj_list = _normalize_cnpj(payee_cnpj_values, "payee_cnpj")
+        payer_cnpj_list = _normalize_cnpj(payer_cnpj_values, "payer_cnpj")
+        cpf_list = _normalize_cpf(cpf_values, "cpf")
+        barcode_list = _normalize_digits_list(barcode_values)
+        fornecedor_terms = [term for term in fornecedor_terms if term]
+        pagador_terms = [term for term in pagador_terms if term]
+        documento_terms = [term for term in documento_terms if term]
+
+        if cnpj_list:
+            qs = qs.filter(Q(payee_cnpj__in=cnpj_list) | Q(payer_cnpj__in=cnpj_list))
+        if payee_cnpj_list:
+            qs = qs.filter(payee_cnpj__in=payee_cnpj_list)
+        if payer_cnpj_list:
+            qs = qs.filter(payer_cnpj__in=payer_cnpj_list)
+        if cpf_list:
+            qs = qs.filter(cpf__in=cpf_list)
+        if barcode_list:
+            qs = qs.filter(barcode__in=barcode_list)
+        if fornecedor_terms:
+            query = Q()
+            for term in fornecedor_terms:
+                query |= Q(payee_name__icontains=term)
+            qs = qs.filter(query)
+        if pagador_terms:
+            query = Q()
+            for term in pagador_terms:
+                query |= Q(payer_name__icontains=term)
+            qs = qs.filter(query)
+        if documento_terms:
+            query = Q()
+            for term in documento_terms:
+                query |= Q(document_number__icontains=term)
+            qs = qs.filter(query)
+        if valor_min is not None:
+            qs = qs.filter(document_value__gte=valor_min)
+        if valor_max is not None:
+            qs = qs.filter(document_value__lte=valor_max)
+        if data_ini:
+            qs = qs.filter(issue_date__gte=data_ini)
+        if data_fim:
+            qs = qs.filter(issue_date__lte=data_fim)
+        if vencimento_ini:
+            qs = qs.filter(due_date__gte=vencimento_ini)
+        if vencimento_fim:
+            qs = qs.filter(due_date__lte=vencimento_fim)
+
         qs = _apply_term_filters(qs, effective_terms, mode=effective_mode)
         if effective_exclude_terms:
             for term in effective_exclude_terms:
                 qs = qs.exclude(text_content_norm__icontains=term)
 
-        return qs.order_by("-uploaded_at"), effective_terms
+        order_fields = {
+            "uploaded_at": "uploaded_at",
+            "created_at": "uploaded_at",
+            "processed_at": "processed_at",
+            "updated_at": "processed_at",
+            "due_date": "due_date",
+            "vencimento": "due_date",
+            "issue_date": "issue_date",
+            "data_emissao": "issue_date",
+            "document_value": "document_value",
+            "valor_total": "document_value",
+            "fornecedor": "payee_name",
+            "payee_name": "payee_name",
+            "status": "status",
+        }
+        if order_by_raw:
+            order_field = order_fields.get(order_by_raw)
+            if not order_field:
+                raise ValidationError({"order_by": "campo invalido para ordenacao."})
+        else:
+            order_field = "uploaded_at"
+
+        if direction_raw not in {"asc", "desc"}:
+            raise ValidationError({"direction": "use 'asc' ou 'desc'."})
+        if direction_raw == "desc":
+            order_field = f"-{order_field}"
+
+        return qs.order_by(order_field), effective_terms
 
     def list(self, request, *args, **kwargs):
         queryset, snippet_terms = self._apply_filters(self.get_queryset())
-        paginator = DocumentPagination()
+        if "limit" in request.query_params or "offset" in request.query_params:
+            paginator = DocumentLimitOffsetPagination()
+        else:
+            paginator = DocumentPagination()
         page = paginator.paginate_queryset(queryset, request, view=self)
         context = {**self.get_serializer_context(), "snippet_terms": snippet_terms}
         if page is not None:

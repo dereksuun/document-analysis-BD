@@ -5,6 +5,9 @@ SYNONYM_MAP = {
     "vencimento": "due_date",
     "data de vencimento": "due_date",
     "data vencimento": "due_date",
+    "data de emissao": "issue_date",
+    "data emissao": "issue_date",
+    "emissao": "issue_date",
     "valor": "document_value",
     "valor do documento": "document_value",
     "valor total": "document_value",
@@ -40,6 +43,7 @@ SYNONYM_MAP = {
 
 TYPE_BY_BUILTIN = {
     "due_date": "date",
+    "issue_date": "date",
     "document_value": "money",
     "barcode": "barcode",
     "billing_address": "address",

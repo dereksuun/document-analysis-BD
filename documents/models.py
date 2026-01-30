@@ -225,6 +225,24 @@ class Document(models.Model):
     text_content = models.TextField(blank=True, default="")
     text_content_norm = models.TextField(blank=True, default="")
     document_type = models.CharField(max_length=40, blank=True, default="")
+    issue_date = models.DateField(null=True, blank=True, db_index=True)
+    due_date = models.DateField(null=True, blank=True, db_index=True)
+    document_value = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+    juros = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    multa = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    barcode = models.CharField(max_length=48, blank=True, default="", db_index=True)
+    payee_name = models.CharField(max_length=200, blank=True, default="", db_index=True)
+    payer_name = models.CharField(max_length=200, blank=True, default="", db_index=True)
+    payee_cnpj = models.CharField(max_length=14, blank=True, default="", db_index=True)
+    payer_cnpj = models.CharField(max_length=14, blank=True, default="", db_index=True)
+    cpf = models.CharField(max_length=11, blank=True, default="", db_index=True)
+    document_number = models.CharField(max_length=64, blank=True, default="", db_index=True)
     contact_phone = models.CharField(max_length=20, null=True, blank=True)
     extracted_age_years = models.PositiveSmallIntegerField(null=True, blank=True)
     extracted_experience_years = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -245,6 +263,18 @@ class Document(models.Model):
         self.text_content = ""
         self.text_content_norm = ""
         self.document_type = ""
+        self.issue_date = None
+        self.due_date = None
+        self.document_value = None
+        self.juros = None
+        self.multa = None
+        self.barcode = ""
+        self.payee_name = ""
+        self.payer_name = ""
+        self.payee_cnpj = ""
+        self.payer_cnpj = ""
+        self.cpf = ""
+        self.document_number = ""
         self.contact_phone = None
         self.extracted_age_years = None
         self.extracted_experience_years = None
