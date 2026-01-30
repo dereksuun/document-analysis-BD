@@ -98,6 +98,7 @@ class DocumentStatus(models.TextChoices):
     PROCESSING = "PROCESSING", "Processando"
     DONE = "DONE", "Processado"
     FAILED = "FAILED", "Falhou"
+    DELETED = "DELETED", "Excluido"
 
 
 class ExtractionProfile(models.Model):
@@ -209,6 +210,9 @@ class Document(models.Model):
         choices=DocumentStatus.choices,
         default=DocumentStatus.PENDING,
     )
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_reason = models.CharField(max_length=64, blank=True, default="")
 
     file = models.FileField(upload_to="documents/%Y/%m/%d/")
     original_filename = models.CharField(max_length=255)
@@ -262,6 +266,12 @@ class Document(models.Model):
         self.status = DocumentStatus.FAILED
         self.processed_at = timezone.now()
         self.error_message = (msg or "")[:5000]
+
+    def mark_deleted(self, reason: str = "retention_30d"):
+        self.status = DocumentStatus.DELETED
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.deleted_reason = (reason or "retention_30d")[:64]
 
     def __str__(self):
         return f"{self.original_filename} ({self.id})"

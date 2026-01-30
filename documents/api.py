@@ -1,4 +1,5 @@
 import io
+import logging
 import json
 import os
 import re
@@ -11,10 +12,12 @@ from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.text import get_valid_filename
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -47,12 +50,13 @@ from .models import (
     get_user_sector_role,
 )
 from .services import CORE_FIELD_KEYS, KEYWORD_PREFIX, _normalize_for_match, sanitize_payload
-from .tasks import process_document_task
+from .tasks import process_document_task, send_email_task
 
 TERM_SPLIT_RE = re.compile(r"[,\s]+")
 MAX_BULK = 25
 SEARCH_SNIPPET_LEN = 120
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class IsAuthenticatedOrOptions(IsAuthenticated):
@@ -217,6 +221,70 @@ def _get_profile(user):
 def _get_user_profile(user):
     profile, _ = UserProfile.objects.get_or_create(user=user)
     return profile
+
+
+def _build_frontend_link(path: str, *, uid: str, token: str) -> str:
+    base_url = getattr(settings, "FRONTEND_PUBLIC_URL", "http://localhost:5173").rstrip("/")
+    path = path.lstrip("/")
+    return f"{base_url}/{path}?uid={uid}&token={token}"
+
+
+def _send_activation_email(user):
+    if not user or not user.email:
+        return
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    link = _build_frontend_link("activate", uid=uid, token=token)
+    subject = "Ative sua conta"
+    body = (
+        "Sua conta foi criada. Para ativar e definir sua senha, use o link abaixo:\n\n"
+        f"{link}\n\n"
+        "Se voce nao solicitou, ignore este e-mail."
+    )
+    try:
+        send_email_task.delay(
+            subject=subject,
+            body=body,
+            to_emails=[user.email],
+        )
+    except Exception:
+        logger.exception("activation_email_enqueue_failed user=%s", user.id)
+
+
+def _send_reset_email(user):
+    if not user or not user.email:
+        return
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    link = _build_frontend_link("reset-password", uid=uid, token=token)
+    subject = "Redefinicao de senha"
+    body = (
+        "Recebemos um pedido para redefinir sua senha.\n\n"
+        f"Use este link para criar uma nova senha (expira em breve):\n{link}\n\n"
+        "Se voce nao solicitou, ignore este e-mail."
+    )
+    try:
+        send_email_task.delay(
+            subject=subject,
+            body=body,
+            to_emails=[user.email],
+        )
+    except Exception:
+        logger.exception("password_reset_email_enqueue_failed user=%s", user.id)
+
+
+def _safe_get_user_by_username(username: str):
+    return User.objects.filter(username__iexact=username).first()
+
+
+def _is_valid_email(email: str) -> bool:
+    if not email:
+        return False
+    try:
+        validate_email(email)
+        return True
+    except DjangoValidationError:
+        return False
 
 
 def _require_user_sector(user):
@@ -419,36 +487,58 @@ class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        username = (request.data.get("username") or "").strip()
+        username_raw = request.data.get("username") or ""
+        username = username_raw.strip()
+        normalized = username.lower()
+        ok_response = Response({"ok": True})
         if not username:
-            return Response({"ok": True})
+            return ok_response
 
         ip = request.META.get("REMOTE_ADDR", "")
-        cache_key = f"pwdreset:{username}:{ip}"
+        cache_key = f"pwdreset:ip:{ip}:user:{normalized}"
         if cache.get(cache_key):
-            return Response({"ok": True})
-        cache.set(cache_key, True, timeout=60)
+            return ok_response
+        cache.set(cache_key, True, timeout=120)
 
-        user = User.objects.filter(username__iexact=username, is_active=True).first()
-        if user and user.email:
-            token = PasswordResetTokenGenerator().make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            base_url = getattr(settings, "FRONTEND_PUBLIC_URL", "http://localhost:5173").rstrip("/")
-            reset_link = f"{base_url}/reset-password?uid={uid}&token={token}"
-            subject = "Redefinicao de senha"
-            body = (
-                "Recebemos um pedido para redefinir sua senha.\n\n"
-                f"Use este link para criar uma nova senha (expira em breve):\n{reset_link}\n\n"
-                "Se voce nao solicitou, ignore este e-mail."
+        user = _safe_get_user_by_username(normalized)
+        if not user:
+            logger.info("password_reset_request username_not_found user=%s ip=%s", normalized, ip)
+            return ok_response
+        if not user.is_active:
+            logger.info("password_reset_request user_inactive user=%s ip=%s", normalized, ip)
+            return ok_response
+        if not _is_valid_email(user.email):
+            logger.info("password_reset_request invalid_email user=%s ip=%s", normalized, ip)
+            return ok_response
+
+        _send_reset_email(user)
+        logger.info("password_reset_request email_queued user=%s ip=%s", normalized, ip)
+        return ok_response
+
+
+class AdminResetPasswordView(APIView):
+    permission_classes = [IsAdminOrOptions]
+
+    def post(self, request, user_id: int):
+        ok_response = Response({"ok": True})
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            logger.info("admin_reset_password user_not_found user_id=%s", user_id)
+            return ok_response
+        if not user.is_active:
+            logger.info("admin_reset_password user_inactive user_id=%s username=%s", user_id, user.username)
+            return ok_response
+        if not _is_valid_email(user.email):
+            logger.info(
+                "admin_reset_password invalid_email user_id=%s username=%s email=%s",
+                user_id,
+                user.username,
+                user.email,
             )
-            send_mail(
-                subject,
-                body,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=True,
-            )
-        return Response({"ok": True})
+            return ok_response
+        _send_reset_email(user)
+        logger.info("admin_reset_password email_queued user_id=%s username=%s", user_id, user.username)
+        return ok_response
 
 
 class PasswordResetConfirmView(APIView):
@@ -479,6 +569,37 @@ class PasswordResetConfirmView(APIView):
         validate_password(new_password, user=user)
         user.set_password(new_password)
         user.save(update_fields=["password"])
+        return Response({"ok": True})
+
+
+class ActivateAccountView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        uid = (request.data.get("uid") or "").strip()
+        token = (request.data.get("token") or "").strip()
+        new_password = request.data.get("new_password") or ""
+
+        if not uid or not token or not new_password:
+            raise ValidationError({"detail": "uid, token e new_password sao obrigatorios."})
+
+        try:
+            user_id = urlsafe_base64_decode(uid).decode()
+        except Exception as exc:
+            raise ValidationError({"detail": "uid invalido."}) from exc
+
+        user = User.objects.filter(pk=user_id, is_active=False).first()
+        if not user:
+            raise ValidationError({"detail": "token invalido."})
+
+        if not default_token_generator.check_token(user, token):
+            raise ValidationError({"detail": "token invalido."})
+
+        validate_password(new_password, user=user)
+        user.set_password(new_password)
+        user.is_active = True
+        user.save(update_fields=["password", "is_active"])
         return Response({"ok": True})
 
 
@@ -621,6 +742,9 @@ class DocumentSerializer(serializers.ModelSerializer):
             "id",
             "filename",
             "status",
+            "is_deleted",
+            "deleted_at",
+            "deleted_reason",
             "extracted_age_years",
             "extracted_experience_years",
             "error_message",
@@ -789,6 +913,8 @@ class AdminUserSerializer(serializers.ModelSerializer):
             if role:
                 defaults["role"] = role
             UserSector.objects.update_or_create(user=user, defaults=defaults)
+        if not user.is_active:
+            _send_activation_email(user)
         return user
 
     def update(self, instance, validated_data):
@@ -927,6 +1053,37 @@ class UserViewSet(
             else:
                 qs = qs.filter(sector_membership__sector_id=sector_id)
         return qs
+
+    @action(detail=True, methods=["post"], url_path="resend-activation")
+    def resend_activation(self, request, pk=None):
+        user = self.get_object()
+        if user.is_active:
+            return Response({"detail": "Usuario ja esta ativo."}, status=status.HTTP_400_BAD_REQUEST)
+        if not user.email:
+            return Response({"detail": "Usuario sem e-mail cadastrado."}, status=status.HTTP_400_BAD_REQUEST)
+        cooldown_key = f"activation:{user.id}"
+        if cache.get(cooldown_key):
+            return Response(
+                {"detail": "Aguarde alguns minutos para reenviar o convite."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+        cache.set(cooldown_key, True, timeout=120)
+        _send_activation_email(user)
+        return Response({"ok": True})
+
+    @action(detail=True, methods=["get"], url_path="email-status")
+    def email_status(self, request, pk=None):
+        user = self.get_object()
+        return Response(
+            {
+                "id": user.id,
+                "username": user.get_username(),
+                "email": user.email or "",
+                "is_active": user.is_active,
+                "has_email": bool(user.email),
+                "note": "Envios reais sao registrados nos logs do worker.",
+            }
+        )
 
 
 class DocumentViewSet(viewsets.GenericViewSet):
@@ -1089,6 +1246,11 @@ class DocumentViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=["post"], url_path="reprocess")
     def reprocess(self, request, pk=None):
         doc = self.get_object()
+        if _is_doc_unavailable(doc):
+            return Response(
+                {"detail": "Documento indisponivel por politica de retencao."},
+                status=status.HTTP_410_GONE,
+            )
         force_ocr_raw = request.data.get("force_ocr", request.query_params.get("force_ocr", ""))
         force_ocr = str(force_ocr_raw).lower() in {"1", "true", "yes"}
 
@@ -1118,6 +1280,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
             Document.objects.filter(sector=sector, id__in=ids)
             .exclude(status=DocumentStatus.PROCESSING)
         )
+        docs = [doc for doc in docs if not _is_doc_unavailable(doc)]
 
         for doc in docs:
             transaction.on_commit(
@@ -1133,6 +1296,11 @@ class DocumentViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=["get"], url_path="download-json")
     def download_json(self, request, pk=None):
         doc = self.get_object()
+        if _is_doc_unavailable(doc):
+            return Response(
+                {"detail": "Documento indisponivel por politica de retencao."},
+                status=status.HTTP_410_GONE,
+            )
         json_data = sanitize_payload(doc.extracted_json or {})
         payload = json.dumps(json_data, ensure_ascii=False, indent=2)
         filename = _build_json_filename(doc)
@@ -1143,6 +1311,11 @@ class DocumentViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=["get"], url_path="download-file")
     def download_file(self, request, pk=None):
         doc = self.get_object()
+        if _is_doc_unavailable(doc):
+            return Response(
+                {"detail": "Documento indisponivel por politica de retencao."},
+                status=status.HTTP_410_GONE,
+            )
         filename = doc.original_filename or os.path.basename(doc.file.name) or str(doc.id)
         try:
             return FileResponse(doc.file.open("rb"), as_attachment=True, filename=filename)
@@ -1161,6 +1334,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
             Document.objects.filter(sector=sector, id__in=ids)
             .order_by("-uploaded_at")
         )
+        docs = [doc for doc in docs if not _is_doc_unavailable(doc)]
 
         buffer = io.BytesIO()
         used_names = set()
@@ -1200,6 +1374,7 @@ class DocumentViewSet(viewsets.GenericViewSet):
             Document.objects.filter(sector=sector, id__in=ids)
             .order_by("-uploaded_at")
         )
+        docs = [doc for doc in docs if not _is_doc_unavailable(doc)]
 
         buffer = io.BytesIO()
         used_names = set()
@@ -1241,3 +1416,5 @@ class FilterPresetViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+def _is_doc_unavailable(doc: Document) -> bool:
+    return bool(doc.is_deleted or doc.status == DocumentStatus.DELETED)

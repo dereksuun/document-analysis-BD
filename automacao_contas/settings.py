@@ -60,7 +60,7 @@ INSTALLED_APPS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    "documents.auth_backends.EmailOrUsernameBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 MIDDLEWARE = [
@@ -148,11 +148,11 @@ LOGIN_REDIRECT_URL = "/documents/"
 LOGOUT_REDIRECT_URL = "/login/"
 
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@seudominio.com")
-SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+SERVER_EMAIL = os.getenv("SERVER_EMAIL", EMAIL_HOST_USER)
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "false").lower() == "true"
@@ -183,6 +183,9 @@ LOGGING = {
         },
     },
     "root": {"handlers": ["console", "file"], "level": "INFO"},
+    "loggers": {
+        "automacao_contas.settings": {"handlers": ["console", "file"], "level": "INFO", "propagate": False},
+    },
 }
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
@@ -192,3 +195,15 @@ CELERY_TASK_TIME_LIMIT = 60 * 10
 CELERY_TASK_SOFT_TIME_LIMIT = 60 * 8
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TASK_ACKS_LATE = True
+
+import logging as _logging
+_settings_logger = _logging.getLogger("automacao_contas.settings")
+_settings_logger.info(
+    "email_settings backend=%s host=%s port=%s tls=%s ssl=%s from=%s",
+    EMAIL_BACKEND,
+    EMAIL_HOST,
+    EMAIL_PORT,
+    EMAIL_USE_TLS,
+    EMAIL_USE_SSL,
+    DEFAULT_FROM_EMAIL,
+)

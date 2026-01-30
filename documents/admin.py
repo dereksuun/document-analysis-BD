@@ -1,7 +1,10 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.db import transaction
+from django.utils import timezone
 
 from .models import (
     Document,
+    DocumentStatus,
     ExtractionField,
     ExtractionKeyword,
     ExtractionProfile,
@@ -51,9 +54,38 @@ def _remove_field_keys(keys, owner_id=None):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ("id", "original_filename", "owner", "sector", "status", "uploaded_at", "processed_at")
-    list_filter = ("status", "uploaded_at", "sector")
+    list_display = (
+        "id",
+        "original_filename",
+        "owner",
+        "sector",
+        "status",
+        "is_deleted",
+        "uploaded_at",
+        "processed_at",
+    )
+    list_filter = ("status", "is_deleted", "uploaded_at", "sector")
     search_fields = ("original_filename", "id", "owner__username", "sector__name")
+    actions = ["mark_deleted"]
+
+    def mark_deleted(self, request, queryset):
+        total = 0
+        for doc in queryset.iterator():
+            total += 1
+            if doc.file and doc.file.name:
+                try:
+                    doc.file.storage.delete(doc.file.name)
+                except Exception:
+                    messages.warning(request, f"Falha ao remover arquivo do doc {doc.id}.")
+            with transaction.atomic():
+                doc.status = DocumentStatus.DELETED
+                doc.is_deleted = True
+                doc.deleted_at = timezone.now()
+                doc.deleted_reason = (doc.deleted_reason or "manual_admin")[:64]
+                doc.save(update_fields=["status", "is_deleted", "deleted_at", "deleted_reason"])
+        self.message_user(request, f"Marcados como excluidos: {total}", level=messages.SUCCESS)
+
+    mark_deleted.short_description = "Excluir arquivo e marcar como excluido"
 
 
 @admin.register(ExtractionProfile)

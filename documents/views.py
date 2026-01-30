@@ -865,6 +865,8 @@ def process_document_view(request, doc_id):
 
     sector = _require_user_sector(request.user)
     doc = get_object_or_404(Document, id=doc_id, sector=sector)
+    if doc.is_deleted or doc.status == DocumentStatus.DELETED:
+        return HttpResponse("Documento indisponivel por politica de retencao.", status=410)
     allow_reprocess = request.POST.get("reprocess") == "1"
 
     if doc.status == DocumentStatus.PROCESSING:
@@ -913,6 +915,7 @@ def process_documents_bulk(request):
         qs = qs.exclude(status=DocumentStatus.DONE)
 
     docs = list(qs)
+    docs = [doc for doc in docs if not (doc.is_deleted or doc.status == DocumentStatus.DELETED)]
     force_ocr = _get_force_ocr(request)
     logger.info(
         "bulk_process_enqueue user=%s action=%s count=%s force_ocr=%s",
@@ -939,6 +942,8 @@ def process_documents_bulk(request):
 def download_document(request, doc_id):
     sector = _require_user_sector(request.user)
     doc = get_object_or_404(Document, id=doc_id, sector=sector)
+    if doc.is_deleted or doc.status == DocumentStatus.DELETED:
+        return HttpResponse("Documento indisponivel por politica de retencao.", status=410)
     filename = doc.original_filename or os.path.basename(doc.file.name)
     return FileResponse(doc.file.open("rb"), as_attachment=True, filename=filename)
 
@@ -990,6 +995,8 @@ def _build_json_filename(doc):
 def download_document_json(request, doc_id):
     sector = _require_user_sector(request.user)
     doc = get_object_or_404(Document, id=doc_id, sector=sector)
+    if doc.is_deleted or doc.status == DocumentStatus.DELETED:
+        return HttpResponse("Documento indisponivel por politica de retencao.", status=410)
     json_data = sanitize_payload(doc.extracted_json or {})
     payload = json.dumps(json_data, ensure_ascii=False, indent=2)
     filename = _build_json_filename(doc)
@@ -1012,6 +1019,7 @@ def download_documents_json_bulk(request):
         Document.objects.filter(sector=sector, id__in=ids)
         .order_by("-uploaded_at")
     )
+    docs = [doc for doc in docs if not (doc.is_deleted or doc.status == DocumentStatus.DELETED)]
 
     buffer = io.BytesIO()
     used_names = set()
@@ -1055,6 +1063,7 @@ def download_documents_files_bulk(request):
         Document.objects.filter(sector=sector, id__in=ids)
         .order_by("-uploaded_at")
     )
+    docs = [doc for doc in docs if not (doc.is_deleted or doc.status == DocumentStatus.DELETED)]
 
     buffer = io.BytesIO()
     used_names = set()
@@ -1100,5 +1109,7 @@ def download_documents_files_bulk(request):
 def document_json_view(request, doc_id):
     sector = _require_user_sector(request.user)
     doc = get_object_or_404(Document, id=doc_id, sector=sector)
+    if doc.is_deleted or doc.status == DocumentStatus.DELETED:
+        return HttpResponse("Documento indisponivel por politica de retencao.", status=410)
     json_data = sanitize_payload(doc.extracted_json or {})
     return render(request, "documents/json.html", {"doc": doc, "json_data": json_data})

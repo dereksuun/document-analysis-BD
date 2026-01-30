@@ -1,10 +1,15 @@
 import logging
+import smtplib
+import socket
 import os
 import tempfile
+from datetime import timedelta
 
 from celery import shared_task
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.core.mail import send_mail
 
 from .models import Document, DocumentStatus
 from .processing import apply_extracted_fields, get_keyword_map
@@ -27,6 +32,13 @@ PROCESSING_UPDATE_FIELDS = [
     "extracted_experience_years",
     "ocr_used",
     "text_quality",
+]
+
+RETENTION_UPDATE_FIELDS = [
+    "status",
+    "is_deleted",
+    "deleted_at",
+    "deleted_reason",
 ]
 
 
@@ -149,3 +161,55 @@ def process_document_task(self, doc_id, *, force=False, force_ocr=False):
         logger.info("process_done doc=%s task=%s", doc_id, getattr(self.request, "id", "-"))
 
     return {"ok": True}
+
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
+def retention_cleanup_task(self, *, retention_days=30, reason="retention_30d"):
+    cutoff = timezone.now() - timedelta(days=int(retention_days))
+    docs = Document.objects.filter(uploaded_at__lt=cutoff, is_deleted=False).exclude(
+        status=DocumentStatus.PROCESSING
+    )
+    total = 0
+    deleted = 0
+    for doc in docs.iterator():
+        total += 1
+        if doc.file and doc.file.name:
+            try:
+                doc.file.storage.delete(doc.file.name)
+            except Exception:
+                logger.exception("retention_delete_failed doc=%s", doc.id)
+        doc.mark_deleted(reason=reason)
+        doc.save(update_fields=RETENTION_UPDATE_FIELDS)
+        deleted += 1
+    logger.info(
+        "retention_cleanup done total=%s deleted=%s cutoff=%s",
+        total,
+        deleted,
+        cutoff.isoformat(),
+    )
+    return {"total": total, "deleted": deleted}
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError, socket.timeout, TimeoutError),
+    retry_backoff=True,
+    max_retries=3,
+)
+def send_email_task(self, *, subject: str, body: str, to_emails: list[str]):
+    try:
+        sent = send_mail(
+            subject=subject,
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=to_emails,
+            fail_silently=False,
+        )
+        logger.info("email_sent subject=%s to=%s count=%s", subject, ",".join(to_emails), sent)
+        return {"sent": sent}
+    except (smtplib.SMTPRecipientsRefused, smtplib.SMTPAuthenticationError, smtplib.SMTPSenderRefused) as exc:
+        logger.error("email_send_rejected subject=%s to=%s error=%s", subject, ",".join(to_emails), exc)
+        return {"sent": 0, "error": str(exc)}
+    except Exception:
+        logger.exception("email_send_failed subject=%s to=%s", subject, ",".join(to_emails))
+        raise
