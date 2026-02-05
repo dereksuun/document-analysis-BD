@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.mail import send_mail
 
+from .ai_extraction import extract_structured, is_ai_extraction_enabled
 from .models import Document, DocumentStatus
 from .processing import apply_extracted_fields, get_keyword_map
 from .services import process_document
@@ -52,6 +53,7 @@ RETENTION_UPDATE_FIELDS = [
     "deleted_at",
     "deleted_reason",
 ]
+AI_UPDATE_FIELDS = ["extracted_json"]
 
 
 def _iter_file_chunks(file_obj, chunk_size=1024 * 1024):
@@ -170,8 +172,67 @@ def process_document_task(self, doc_id, *, force=False, force_ocr=False):
             text_quality=text_quality,
         )
         doc.save()
+        if is_ai_extraction_enabled():
+            transaction.on_commit(lambda done_id=str(doc.id): extract_ai_task.delay(done_id))
         logger.info("process_done doc=%s task=%s", doc_id, getattr(self.request, "id", "-"))
 
+    return {"ok": True}
+
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=2)
+def extract_ai_task(self, doc_id, *, force=False):
+    if not is_ai_extraction_enabled():
+        logger.info("ai_extract_skip doc=%s reason=disabled", doc_id)
+        return {"skipped": True, "reason": "disabled"}
+
+    try:
+        doc = Document.objects.get(id=doc_id)
+    except Document.DoesNotExist:
+        logger.warning("ai_extract_skip doc=%s reason=missing", doc_id)
+        return {"skipped": True, "reason": "missing"}
+
+    if doc.status != DocumentStatus.DONE:
+        logger.info("ai_extract_skip doc=%s reason=status_%s", doc_id, doc.status.lower())
+        return {"skipped": True, "reason": f"status_{doc.status.lower()}"}
+    if doc.is_deleted or doc.status == DocumentStatus.DELETED:
+        logger.info("ai_extract_skip doc=%s reason=deleted", doc_id)
+        return {"skipped": True, "reason": "deleted"}
+
+    text_value = (doc.text_content or doc.extracted_text or "").strip()
+    if not text_value:
+        logger.info("ai_extract_skip doc=%s reason=empty_text", doc_id)
+        return {"skipped": True, "reason": "empty_text"}
+
+    existing_payload = doc.extracted_json if isinstance(doc.extracted_json, dict) else {}
+    if not force and isinstance(existing_payload.get("ai"), dict):
+        logger.info("ai_extract_skip doc=%s reason=already_done", doc_id)
+        return {"skipped": True, "reason": "already_done"}
+
+    ai_payload, ai_meta = extract_structured(text_value, filename=doc.original_filename)
+
+    with transaction.atomic():
+        try:
+            locked_doc = Document.objects.select_for_update().get(id=doc_id)
+        except Document.DoesNotExist:
+            logger.warning("ai_extract_skip doc=%s reason=missing_after_extract", doc_id)
+            return {"skipped": True, "reason": "missing"}
+
+        if locked_doc.status != DocumentStatus.DONE:
+            logger.info(
+                "ai_extract_skip doc=%s reason=status_changed_%s",
+                doc_id,
+                locked_doc.status.lower(),
+            )
+            return {"skipped": True, "reason": "status_changed"}
+
+        merged_payload = locked_doc.extracted_json if isinstance(locked_doc.extracted_json, dict) else {}
+        merged_payload = dict(merged_payload)
+        merged_payload["ai"] = ai_payload
+        merged_payload["ai_meta"] = ai_meta
+        locked_doc.extracted_json = merged_payload
+        locked_doc.save(update_fields=AI_UPDATE_FIELDS)
+
+    logger.info("ai_extract_done doc=%s task=%s", doc_id, getattr(self.request, "id", "-"))
     return {"ok": True}
 
 

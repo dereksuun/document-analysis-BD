@@ -160,6 +160,36 @@ EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "20"))
 PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "3600"))
 FRONTEND_PUBLIC_URL = os.getenv("FRONTEND_PUBLIC_URL", "http://localhost:5173")
 
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name, "")
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini").strip() or "gpt-5-mini"
+OPENAI_REASONING_EFFORT = (
+    os.getenv("OPENAI_REASONING_EFFORT", "low").strip().lower() or "low"
+)
+AI_EXTRACTION_ENABLED = os.getenv("AI_EXTRACTION_ENABLED", "true").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+AI_EXTRACTION_SCHEMA_VERSION = (
+    os.getenv("AI_EXTRACTION_SCHEMA_VERSION", "2026-02-02.v1").strip()
+    or "2026-02-02.v1"
+)
+AI_EXTRACTION_MAX_TEXT_CHARS = _env_int("AI_EXTRACTION_MAX_TEXT_CHARS", 24000)
+AI_EXTRACTION_MAX_OUTPUT_TOKENS = _env_int("AI_EXTRACTION_MAX_OUTPUT_TOKENS", 1200)
+AI_EXTRACTION_TIMEOUT_SECONDS = _env_int("AI_EXTRACTION_TIMEOUT_SECONDS", 60)
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOG_DIR = Path(os.getenv("LOG_DIR", BASE_DIR / "logs"))

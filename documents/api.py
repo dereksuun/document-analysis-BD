@@ -33,6 +33,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .ai_filters import document_passes_semantic_filters, find_evidence_snippet
 from .forms import MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB
 from .intent import resolve_intent
 from .intent_catalog import TYPE_BY_BUILTIN
@@ -817,6 +818,9 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     def get_search_snippet(self, obj):
         terms = self.context.get("snippet_terms") or []
+        ai_snippet = find_evidence_snippet(obj, terms, max_len=SEARCH_SNIPPET_LEN)
+        if ai_snippet:
+            return ai_snippet
         if not terms:
             return ""
         source = obj.text_content or obj.extracted_text or ""
@@ -1268,23 +1272,28 @@ class DocumentViewSet(viewsets.GenericViewSet):
         effective_terms = search_terms
         effective_mode = mode
         effective_exclude_terms = exclude_terms
+        effective_exp_min = exp_min_override
+        effective_exp_max = exp_max_override
+        effective_age_min = age_min_override
+        effective_age_max = age_max_override
+        effective_exclude_unknowns = bool(exclude_unknowns_override)
         if preset_id:
             try:
                 preset = FilterPreset.objects.get(id=preset_id, owner=user)
             except FilterPreset.DoesNotExist as exc:
                 raise NotFound("Preset not found.") from exc
 
-            qs = _apply_preset_filters(
-                qs,
-                preset,
-                experience_min_years=exp_min_override,
-                experience_max_years=exp_max_override,
-                age_min_years=age_min_override,
-                age_max_years=age_max_override,
-                exclude_unknowns=exclude_unknowns_override
-                if exclude_unknowns_override is not None
-                else preset.exclude_unknowns,
-            )
+            if effective_exp_min is None:
+                effective_exp_min = preset.experience_min_years
+            if effective_exp_max is None:
+                effective_exp_max = preset.experience_max_years
+            if effective_age_min is None:
+                effective_age_min = preset.age_min_years
+            if effective_age_max is None:
+                effective_age_max = preset.age_max_years
+            if exclude_unknowns_override is None:
+                effective_exclude_unknowns = bool(preset.exclude_unknowns)
+
             if preset.keywords:
                 if not search_terms:
                     effective_terms = preset.keywords
@@ -1346,11 +1355,6 @@ class DocumentViewSet(viewsets.GenericViewSet):
         if vencimento_fim:
             qs = qs.filter(due_date__lte=vencimento_fim)
 
-        qs = _apply_term_filters(qs, effective_terms, mode=effective_mode)
-        if effective_exclude_terms:
-            for term in effective_exclude_terms:
-                qs = qs.exclude(text_content_norm__icontains=term)
-
         order_fields = {
             "uploaded_at": "uploaded_at",
             "created_at": "uploaded_at",
@@ -1378,7 +1382,35 @@ class DocumentViewSet(viewsets.GenericViewSet):
         if direction_raw == "desc":
             order_field = f"-{order_field}"
 
-        return qs.order_by(order_field), effective_terms
+        ordered_qs = qs.order_by(order_field)
+        has_semantic_filters = bool(
+            effective_terms
+            or effective_exclude_terms
+            or effective_exp_min is not None
+            or effective_exp_max is not None
+            or effective_age_min is not None
+            or effective_age_max is not None
+        )
+        if not has_semantic_filters:
+            return ordered_qs, effective_terms
+
+        filtered_docs = []
+        for doc in ordered_qs.iterator():
+            if not document_passes_semantic_filters(
+                doc,
+                terms=effective_terms,
+                mode=effective_mode,
+                exclude_terms=effective_exclude_terms,
+                experience_min_years=effective_exp_min,
+                experience_max_years=effective_exp_max,
+                age_min_years=effective_age_min,
+                age_max_years=effective_age_max,
+                exclude_unknowns=effective_exclude_unknowns,
+            ):
+                continue
+            filtered_docs.append(doc)
+
+        return filtered_docs, effective_terms
 
     def list(self, request, *args, **kwargs):
         queryset, snippet_terms = self._apply_filters(self.get_queryset())

@@ -30,6 +30,7 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: automacao_contas.settings
       DATABASE_URL: postgres://automacao:automacao@db:5432/automacao_contas
+      # DATABASE_URL: ${DATABASE_URL}
       ALLOWED_HOSTS: "*"
       CSRF_TRUSTED_ORIGINS: "http://localhost:8000,http://127.0.0.1:8000"
       OCR_LANG: "por"
@@ -56,6 +57,7 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: automacao_contas.settings
       DATABASE_URL: postgres://automacao:automacao@db:5432/automacao_contas
+      # DATABASE_URL: ${DATABASE_URL}
       OCR_LANG: "por"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"

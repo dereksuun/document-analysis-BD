@@ -17,6 +17,7 @@ from django.http import FileResponse, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import get_valid_filename
 
+from .ai_filters import document_passes_semantic_filters, find_evidence_snippet
 from .forms import ExtractionSettingsForm, FilterPresetForm, KeywordForm, MultiUploadForm
 from .intent import resolve_intent
 from .models import (
@@ -298,8 +299,22 @@ def documents_list(request):
     effective_terms = search_terms
     effective_exclude_terms = exclude_terms
     effective_mode = mode
+    effective_exp_min = exp_min_override
+    effective_exp_max = exp_max_override
+    effective_age_min = age_min_override
+    effective_age_max = age_max_override
+    effective_exclude_unknowns = False
     if preset_id:
         active_preset = get_object_or_404(FilterPreset, id=preset_id, owner=request.user)
+        if effective_exp_min is None:
+            effective_exp_min = active_preset.experience_min_years
+        if effective_exp_max is None:
+            effective_exp_max = active_preset.experience_max_years
+        if effective_age_min is None:
+            effective_age_min = active_preset.age_min_years
+        if effective_age_max is None:
+            effective_age_max = active_preset.age_max_years
+        effective_exclude_unknowns = bool(active_preset.exclude_unknowns)
         if exp_min_override is None:
             experience_min_value = (
                 str(active_preset.experience_min_years)
@@ -318,15 +333,6 @@ def documents_list(request):
                 if active_preset.age_max_years is not None
                 else ""
             )
-        docs = _apply_preset_filters(
-            docs,
-            active_preset,
-            experience_min_years=exp_min_override,
-            experience_max_years=exp_max_override,
-            age_min_years=age_min_override,
-            age_max_years=age_max_override,
-            exclude_unknowns=active_preset.exclude_unknowns,
-        )
         if active_preset.keywords:
             preset_keywords_display = "; ".join(active_preset.keywords)
             if not search_query:
@@ -345,12 +351,32 @@ def documents_list(request):
             effective_exclude_terms = preset_exclude_terms
             exclude_query = active_preset.exclude_terms_text
 
-    docs = _apply_term_filters(docs, effective_terms, mode=effective_mode)
-    if effective_exclude_terms:
-        for term in effective_exclude_terms:
-            docs = docs.exclude(text_content_norm__icontains=term)
-
     docs = docs.order_by("-uploaded_at")
+    has_semantic_filters = bool(
+        effective_terms
+        or effective_exclude_terms
+        or effective_exp_min is not None
+        or effective_exp_max is not None
+        or effective_age_min is not None
+        or effective_age_max is not None
+    )
+    if has_semantic_filters:
+        filtered_docs = []
+        for doc in docs.iterator():
+            if not document_passes_semantic_filters(
+                doc,
+                terms=effective_terms,
+                mode=effective_mode,
+                exclude_terms=effective_exclude_terms,
+                experience_min_years=effective_exp_min,
+                experience_max_years=effective_exp_max,
+                age_min_years=effective_age_min,
+                age_max_years=effective_age_max,
+                exclude_unknowns=effective_exclude_unknowns,
+            ):
+                continue
+            filtered_docs.append(doc)
+        docs = filtered_docs
     paginator = Paginator(docs, PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get("page"))
     result_count = paginator.count
@@ -367,6 +393,10 @@ def documents_list(request):
 
     snippet_terms = effective_terms
     for doc in page_obj:
+        ai_snippet = find_evidence_snippet(doc, snippet_terms, max_len=SEARCH_SNIPPET_LEN)
+        if ai_snippet:
+            doc.search_snippet = ai_snippet
+            continue
         snippet_source = doc.text_content or doc.extracted_text or ""
         doc.search_snippet = _build_snippet(snippet_source, snippet_terms)
 

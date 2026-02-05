@@ -870,12 +870,41 @@ def sanitize_payload(payload: dict) -> dict:
                 custom_fields[custom_key] = {"label": label, "value": value.get("value")}
             else:
                 custom_fields[custom_key] = {"label": custom_key, "value": value}
-
-    return {
+    cleaned_payload = {
         "document_type": document_type,
         "fields": fields,
         "custom_fields": custom_fields,
     }
+
+    ai_payload = payload.get("ai")
+    if isinstance(ai_payload, dict):
+        try:
+            from .ai_extraction import normalize_ai_payload
+
+            cleaned_payload["ai"] = normalize_ai_payload(ai_payload)
+        except Exception:
+            cleaned_payload["ai"] = ai_payload
+
+    ai_meta = payload.get("ai_meta")
+    if isinstance(ai_meta, dict):
+        allowed_meta = {}
+        for key in (
+            "provider",
+            "model",
+            "schema_version",
+            "created_at",
+            "reasoning_effort",
+            "input_chars",
+            "input_truncated",
+            "response_id",
+            "error",
+        ):
+            if key in ai_meta:
+                allowed_meta[key] = ai_meta.get(key)
+        if allowed_meta:
+            cleaned_payload["ai_meta"] = allowed_meta
+
+    return cleaned_payload
 
 def _mask_log_value(value, inferred_type: str):
     safe_value = str(value).replace("\n", " ").strip()
